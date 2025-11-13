@@ -4,7 +4,7 @@ This file shows how to add your own custom models to the LLM Comparison Tool.
 
 ## Example: Adding Mistral AI Models
 
-To add Mistral AI models, update the `AVAILABLE_MODELS` dictionary in `app.py`:
+To add Mistral AI models, update the `AVAILABLE_MODELS`:
 
 ```python
 AVAILABLE_MODELS = {
