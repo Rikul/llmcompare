@@ -117,25 +117,6 @@
             </button>
         </div>
 
-        <!-- Results Section -->
-        <div id="resultsSection" class="hidden">
-            <div class="bg-white rounded-lg shadow-md p-6">
-                <h2 class="text-xl font-semibold mb-4 text-gray-800">Model Responses</h2>
-                
-                <!-- Tabs -->
-                <div class="border-b border-gray-200 mb-6">
-                    <nav class="-mb-px flex space-x-8" id="tabsContainer">
-                        <!-- Tabs will be dynamically generated -->
-                    </nav>
-                </div>
-
-                <!-- Tab Content -->
-                <div id="tabContent">
-                    <!-- Tab content will be dynamically generated -->
-                </div>
-            </div>
-        </div>
-
         <!-- Loading Indicator -->
         <div id="loadingIndicator" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center">
             <div class="bg-white p-8 rounded-lg shadow-xl">
@@ -148,9 +129,6 @@
     </main>
 
     <script>
-        let currentTab = null;
-        let modelResponses = {};
-
         document.getElementById('compareButton').addEventListener('click', compareModels);
 
         function compareModels() {
@@ -170,7 +148,7 @@
 
             // Show loading indicator
             document.getElementById('loadingIndicator').classList.remove('hidden');
-            
+
             // Make API call
             fetch('/api/compare', {
                 method: 'POST',
@@ -189,103 +167,23 @@
                 return response.json();
             })
             .then(data => {
-                modelResponses = data;
-                displayResults(data);
-                document.getElementById('loadingIndicator').classList.add('hidden');
+                // Store results and prompt in localStorage
+                localStorage.setItem('comparisonResults', JSON.stringify(data));
+                localStorage.setItem('comparisonPrompt', prompt);
+
+                // Redirect to results page
+                window.location.href = '/results';
             })
             .catch(error => {
                 console.error('Error:', error);
                 document.getElementById('loadingIndicator').classList.add('hidden');
-                
+
                 if (error.error) {
                     alert(error.error);
                 } else {
                     alert('An error occurred while comparing models. Please check your API keys and try again.');
                 }
             });
-        }
-
-        function displayResults(responses) {
-            const resultsSection = document.getElementById('resultsSection');
-            const tabsContainer = document.getElementById('tabsContainer');
-            const tabContent = document.getElementById('tabContent');
-
-            // Clear previous results
-            tabsContainer.innerHTML = '';
-            tabContent.innerHTML = '';
-
-            // Create tabs and content for each model
-            let firstTab = true;
-            for (const [modelId, response] of Object.entries(responses)) {
-                // Create tab
-                const tab = document.createElement('a');
-                tab.href = '#';
-                tab.className = `py-2 px-1 border-b-2 font-medium text-sm ${firstTab ? 'border-purple-600 text-purple-600 tab-active' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`;
-                tab.textContent = response.model_name;
-                tab.onclick = (e) => {
-                    e.preventDefault();
-                    showTab(modelId);
-                };
-                tabsContainer.appendChild(tab);
-
-                // Create content
-                const content = document.createElement('div');
-                content.id = `tab-${modelId}`;
-                content.className = `tab-pane ${firstTab ? '' : 'hidden'}`;
-                content.innerHTML = `
-                    <div class="space-y-4">
-                        <div class="flex justify-between items-center">
-                            <h3 class="text-lg font-semibold">${response.model_name}</h3>
-                            <span class="text-sm text-gray-500">${response.provider}</span>
-                        </div>
-                        <div class="relative">
-                            <div class="response-container bg-gray-50 p-4 rounded-lg">
-                                <pre class="whitespace-pre-wrap text-gray-700" id="response-${modelId}">${response.response}</pre>
-                            </div>
-                            <button class="copy-button" onclick="copyToClipboard('response-${modelId}', this)">
-                                Copy
-                            </button>
-                        </div>
-                        <div class="text-sm text-gray-500">
-                            Response time: ${new Date(response.timestamp).toLocaleString()}
-                        </div>
-                    </div>
-                `;
-                tabContent.appendChild(content);
-
-                if (firstTab) {
-                    currentTab = modelId;
-                    firstTab = false;
-                }
-            }
-
-            // Show results section
-            resultsSection.classList.remove('hidden');
-        }
-
-        function showTab(modelId) {
-            // Update tabs
-            const tabs = document.querySelectorAll('#tabsContainer a');
-            tabs.forEach((tab, index) => {
-                if (Object.keys(modelResponses)[index] === modelId) {
-                    tab.classList.remove('border-transparent', 'text-gray-500');
-                    tab.classList.add('border-purple-600', 'text-purple-600', 'tab-active');
-                } else {
-                    tab.classList.remove('border-purple-600', 'text-purple-600', 'tab-active');
-                    tab.classList.add('border-transparent', 'text-gray-500');
-                }
-            });
-
-            // Update content
-            document.querySelectorAll('.tab-pane').forEach(pane => {
-                if (pane.id === `tab-${modelId}`) {
-                    pane.classList.remove('hidden');
-                } else {
-                    pane.classList.add('hidden');
-                }
-            });
-
-            currentTab = modelId;
         }
 
         // Add enter key support for prompt input
@@ -295,26 +193,6 @@
                 compareModels();
             }
         });
-
-        // Copy to clipboard functionality
-        function copyToClipboard(elementId, button) {
-            const element = document.getElementById(elementId);
-            const text = element.textContent;
-            
-            navigator.clipboard.writeText(text).then(function() {
-                // Change button text to "Copied!"
-                button.textContent = 'Copied!';
-                button.classList.add('copied');
-                
-                // Reset button after 2 seconds
-                setTimeout(() => {
-                    button.textContent = 'Copy';
-                    button.classList.remove('copied');
-                }, 2000);
-            }, function(err) {
-                console.error('Could not copy text: ', err);
-            });
-        }
     </script>
 </body>
 </html>
