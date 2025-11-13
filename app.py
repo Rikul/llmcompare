@@ -221,12 +221,18 @@ def index():
         'Anthropic': bool(os.getenv('ANTHROPIC_API_KEY')),
         'Google': bool(os.getenv('GOOGLE_API_KEY'))
     }
-    
+
     if not any(api_keys_status.values()):
         # No API keys configured, show error template
         return render_template('no_api_keys.html', api_keys_status=api_keys_status)
-    
+
     return render_template('index.html', models=AVAILABLE_MODELS, api_keys_status=api_keys_status)
+
+
+@app.route('/results')
+def results():
+    """Render the results page"""
+    return render_template('results.html')
 
 
 @app.route('/api/models', methods=['GET'])
