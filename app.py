@@ -17,37 +17,95 @@ logger = logging.getLogger(__name__)
 app = Flask(__name__)
 app.config['JSON_SORT_KEYS'] = False
 
-# Model configurations
+# Model configurations - Updated for 2025
 AVAILABLE_MODELS = {
+    # OpenAI Models
+    'gpt-4o': {
+        'name': 'GPT-4o',
+        'endpoint': 'https://api.openai.com/v1/chat/completions',
+        'api_key_env': 'OPENAI_API_KEY',
+        'provider': 'OpenAI'
+    },
+    'gpt-4-turbo': {
+        'name': 'GPT-4 Turbo',
+        'endpoint': 'https://api.openai.com/v1/chat/completions',
+        'api_key_env': 'OPENAI_API_KEY',
+        'provider': 'OpenAI'
+    },
     'gpt-3.5-turbo': {
         'name': 'GPT-3.5 Turbo',
         'endpoint': 'https://api.openai.com/v1/chat/completions',
         'api_key_env': 'OPENAI_API_KEY',
         'provider': 'OpenAI'
     },
-    'gpt-4': {
-        'name': 'GPT-4',
+    'o1-mini': {
+        'name': 'o1-mini',
         'endpoint': 'https://api.openai.com/v1/chat/completions',
         'api_key_env': 'OPENAI_API_KEY',
         'provider': 'OpenAI'
     },
-    'claude-3-opus': {
-        'name': 'Claude 3 Opus',
+    # Anthropic Claude Models
+    'claude-sonnet-4-5': {
+        'name': 'Claude Sonnet 4.5',
         'endpoint': 'https://api.anthropic.com/v1/messages',
         'api_key_env': 'ANTHROPIC_API_KEY',
         'provider': 'Anthropic'
     },
-    'claude-3-sonnet': {
-        'name': 'Claude 3 Sonnet',
+    'claude-opus-4-1': {
+        'name': 'Claude Opus 4.1',
         'endpoint': 'https://api.anthropic.com/v1/messages',
         'api_key_env': 'ANTHROPIC_API_KEY',
         'provider': 'Anthropic'
     },
-    'gemini-pro': {
-        'name': 'Gemini Pro',
-        'endpoint': 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent',
+    'claude-haiku-4-5': {
+        'name': 'Claude Haiku 4.5',
+        'endpoint': 'https://api.anthropic.com/v1/messages',
+        'api_key_env': 'ANTHROPIC_API_KEY',
+        'provider': 'Anthropic'
+    },
+    'claude-sonnet-4': {
+        'name': 'Claude Sonnet 4',
+        'endpoint': 'https://api.anthropic.com/v1/messages',
+        'api_key_env': 'ANTHROPIC_API_KEY',
+        'provider': 'Anthropic'
+    },
+    # Google Gemini Models
+    'gemini-2.5-pro': {
+        'name': 'Gemini 2.5 Pro',
+        'endpoint': 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent',
         'api_key_env': 'GOOGLE_API_KEY',
         'provider': 'Google'
+    },
+    'gemini-2.5-flash': {
+        'name': 'Gemini 2.5 Flash',
+        'endpoint': 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent',
+        'api_key_env': 'GOOGLE_API_KEY',
+        'provider': 'Google'
+    },
+    'gemini-2.0-flash': {
+        'name': 'Gemini 2.0 Flash',
+        'endpoint': 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent',
+        'api_key_env': 'GOOGLE_API_KEY',
+        'provider': 'Google'
+    },
+    # xAI Grok Models
+    'grok-4': {
+        'name': 'Grok 4',
+        'endpoint': 'https://api.x.ai/v1/chat/completions',
+        'api_key_env': 'XAI_API_KEY',
+        'provider': 'xAI'
+    },
+    'grok-3': {
+        'name': 'Grok 3',
+        'endpoint': 'https://api.x.ai/v1/chat/completions',
+        'api_key_env': 'XAI_API_KEY',
+        'provider': 'xAI'
+    },
+    'grok-3-mini': {
+        'name': 'Grok 3 Mini',
+        'endpoint': 'https://api.x.ai/v1/chat/completions',
+        'api_key_env': 'XAI_API_KEY',
+        'provider': 'xAI'
     }
 }
 
@@ -62,7 +120,8 @@ def index():
     api_keys_status = {
         'OpenAI': bool(os.getenv('OPENAI_API_KEY')),
         'Anthropic': bool(os.getenv('ANTHROPIC_API_KEY')),
-        'Google': bool(os.getenv('GOOGLE_API_KEY'))
+        'Google': bool(os.getenv('GOOGLE_API_KEY')),
+        'xAI': bool(os.getenv('XAI_API_KEY'))
     }
 
     if not any(api_keys_status.values()):
@@ -102,7 +161,8 @@ def compare_models():
     api_keys_configured = any([
         os.getenv('OPENAI_API_KEY'),
         os.getenv('ANTHROPIC_API_KEY'),
-        os.getenv('GOOGLE_API_KEY')
+        os.getenv('GOOGLE_API_KEY'),
+        os.getenv('XAI_API_KEY')
     ])
 
     if not api_keys_configured:
@@ -141,7 +201,8 @@ if __name__ == '__main__':
     api_keys_status = {
         'OpenAI': bool(os.getenv('OPENAI_API_KEY')),
         'Anthropic': bool(os.getenv('ANTHROPIC_API_KEY')),
-        'Google': bool(os.getenv('GOOGLE_API_KEY'))
+        'Google': bool(os.getenv('GOOGLE_API_KEY')),
+        'xAI': bool(os.getenv('XAI_API_KEY'))
     }
     
     print("\nAPI Key Status:")
