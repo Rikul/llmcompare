@@ -68,57 +68,94 @@
 
     <!-- Main Content -->
     <main class="container mx-auto px-4 py-8">
-        <!-- Model Selection -->
-        <div class="bg-white rounded-lg shadow-md p-6 mb-8">
-            <h2 class="text-xl font-semibold mb-4 text-gray-800">Select Models to Compare</h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="modelSelection">
-                {% for model_id, model_info in models.items() %}
-                    {% set api_key_configured = api_keys_status.get(model_info.provider, False) %}
-                    {% if api_key_configured %}
-                    <label class="model-card bg-gray-50 p-4 rounded-lg border-2 border-gray-200 cursor-pointer hover:border-purple-400">
-                        <input type="checkbox" class="model-checkbox mr-3" value="{{ model_id }}" data-model-name="{{ model_info.name }}">
-                        <span class="font-medium">{{ model_info.name }}</span>
-                        <span class="text-sm text-gray-500 block ml-6">{{ model_info.provider }}</span>
-                    </label>
-                    {% else %}
-                    <div class="model-card bg-gray-100 p-4 rounded-lg border-2 border-gray-200 opacity-50 cursor-not-allowed">
-                        <input type="checkbox" class="model-checkbox mr-3" disabled>
-                        <span class="font-medium text-gray-400">{{ model_info.name }}</span>
-                        <span class="text-sm text-gray-400 block ml-6">{{ model_info.provider }} - No API Key</span>
+        <div class="flex gap-6">
+            <!-- Left Sidebar - Model Selection -->
+            <aside class="w-80 flex-shrink-0">
+                <div class="bg-white rounded-lg shadow-md p-6 sticky top-4">
+                    <h2 class="text-xl font-semibold mb-4 text-gray-800">Select Models</h2>
+
+                    {% set providers = {} %}
+                    {% for model_id, model_info in models.items() %}
+                        {% if model_info.provider not in providers %}
+                            {% set _ = providers.update({model_info.provider: []}) %}
+                        {% endif %}
+                        {% set _ = providers[model_info.provider].append((model_id, model_info)) %}
+                    {% endfor %}
+
+                    <div class="space-y-6">
+                        {% for provider, provider_models in providers.items() %}
+                        <div class="provider-group">
+                            <h3 class="text-sm font-semibold text-gray-600 uppercase mb-3 pb-2 border-b border-gray-200">{{ provider }}</h3>
+                            <div class="space-y-2">
+                                {% for model_id, model_info in provider_models %}
+                                    {% set api_key_configured = api_keys_status.get(model_info.provider, False) %}
+                                    {% if api_key_configured %}
+                                    <label class="model-card flex items-start p-3 rounded-lg border-2 border-gray-200 cursor-pointer hover:border-purple-400 hover:bg-gray-50 transition-all">
+                                        <input type="checkbox" class="model-checkbox mt-1 mr-3 h-4 w-4" value="{{ model_id }}" data-model-name="{{ model_info.name }}">
+                                        <span class="font-medium text-sm">{{ model_info.name }}</span>
+                                    </label>
+                                    {% else %}
+                                    <div class="flex items-start p-3 rounded-lg border-2 border-gray-200 bg-gray-50 opacity-50 cursor-not-allowed">
+                                        <input type="checkbox" class="mt-1 mr-3 h-4 w-4" disabled>
+                                        <div>
+                                            <span class="font-medium text-sm text-gray-400">{{ model_info.name }}</span>
+                                            <span class="text-xs text-gray-400 block">No API Key</span>
+                                        </div>
+                                    </div>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    {% set available_models = models.values() | selectattr('provider', 'in', api_keys_status.keys()) | list %}
+                    {% if available_models | length == 0 %}
+                    <div class="mt-4 p-4 bg-yellow-50 border-l-4 border-yellow-400">
+                        <p class="text-sm text-yellow-700">
+                            No models available. Please configure API keys in your .env file.
+                        </p>
                     </div>
                     {% endif %}
-                {% endfor %}
-            </div>
-            
-            {% set available_models = models.values() | selectattr('provider', 'in', api_keys_status.keys()) | list %}
-            {% if available_models | length == 0 %}
-            <div class="mt-4 p-4 bg-yellow-50 border-l-4 border-yellow-400">
-                <p class="text-sm text-yellow-700">
-                    No models available. Please configure API keys in your .env file.
-                </p>
-            </div>
-            {% endif %}
-        </div>
+                </div>
+            </aside>
 
-        <!-- Prompt Input -->
-        <div class="bg-white rounded-lg shadow-md p-6 mb-8">
-            <h2 class="text-xl font-semibold mb-4 text-gray-800">Enter Your Prompt</h2>
-            <textarea 
-                id="promptInput" 
-                class="w-full p-4 border-2 border-gray-200 rounded-lg focus:border-purple-400 focus:outline-none"
-                rows="4"
-                placeholder="Enter your prompt here... (e.g., 'Explain quantum computing in simple terms')"
-            ></textarea>
-            <button 
-                id="compareButton"
-                class="mt-4 bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700 transition-colors duration-200 font-medium"
-            >
-                Compare Models
-            </button>
+            <!-- Right Side - Prompt Inputs -->
+            <div class="flex-1">
+                <div class="space-y-6">
+                    <!-- System Prompt -->
+                    <div class="bg-white rounded-lg shadow-md p-6">
+                        <h2 class="text-xl font-semibold mb-4 text-gray-800">System Prompt</h2>
+                        <textarea
+                            id="systemPromptInput"
+                            class="w-full p-4 border-2 border-gray-200 rounded-lg focus:border-purple-400 focus:outline-none"
+                            rows="4"
+                            placeholder="Enter system prompt (optional)... (e.g., 'You are a helpful assistant that explains complex topics in simple terms.')"
+                        ></textarea>
+                    </div>
+
+                    <!-- User Prompt -->
+                    <div class="bg-white rounded-lg shadow-md p-6">
+                        <h2 class="text-xl font-semibold mb-4 text-gray-800">User Prompt</h2>
+                        <textarea
+                            id="promptInput"
+                            class="w-full p-4 border-2 border-gray-200 rounded-lg focus:border-purple-400 focus:outline-none"
+                            rows="6"
+                            placeholder="Enter your prompt here... (e.g., 'Explain quantum computing in simple terms')"
+                        ></textarea>
+                        <button
+                            id="compareButton"
+                            class="mt-4 bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700 transition-colors duration-200 font-medium w-full"
+                        >
+                            Compare Models
+                        </button>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- Loading Indicator -->
-        <div id="loadingIndicator" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center">
+        <div id="loadingIndicator" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center z-50">
             <div class="bg-white p-8 rounded-lg shadow-xl">
                 <div class="flex items-center">
                     <div class="loading-spinner ease-linear rounded-full border-8 border-t-8 border-gray-200 h-16 w-16"></div>
@@ -132,12 +169,13 @@
         document.getElementById('compareButton').addEventListener('click', compareModels);
 
         function compareModels() {
+            const systemPrompt = document.getElementById('systemPromptInput').value.trim();
             const prompt = document.getElementById('promptInput').value.trim();
             const selectedModels = Array.from(document.querySelectorAll('.model-checkbox:checked'))
                 .map(checkbox => checkbox.value);
 
             if (!prompt) {
-                alert('Please enter a prompt');
+                alert('Please enter a user prompt');
                 return;
             }
 
@@ -156,6 +194,7 @@
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
+                    system_prompt: systemPrompt,
                     prompt: prompt,
                     models: selectedModels
                 })
@@ -167,8 +206,9 @@
                 return response.json();
             })
             .then(data => {
-                // Store results and prompt in localStorage
+                // Store results and prompts in localStorage
                 localStorage.setItem('comparisonResults', JSON.stringify(data));
+                localStorage.setItem('comparisonSystemPrompt', systemPrompt);
                 localStorage.setItem('comparisonPrompt', prompt);
 
                 // Hide loading indicator before redirect
@@ -188,9 +228,17 @@
             });
         }
 
-        // Add enter key support for prompt input
+        // Add enter key support for prompt input (Ctrl+Enter to submit)
         document.getElementById('promptInput').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter' && !e.shiftKey) {
+            if (e.key === 'Enter' && e.ctrlKey) {
+                e.preventDefault();
+                compareModels();
+            }
+        });
+
+        // Add enter key support for system prompt input (Ctrl+Enter to submit)
+        document.getElementById('systemPromptInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && e.ctrlKey) {
                 e.preventDefault();
                 compareModels();
             }
