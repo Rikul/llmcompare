@@ -171,6 +171,8 @@
                 localStorage.setItem('comparisonResults', JSON.stringify(data));
                 localStorage.setItem('comparisonPrompt', prompt);
 
+                // Hide loading indicator before redirect
+                document.getElementById('loadingIndicator').classList.add('hidden');
                 // Redirect to results page
                 window.location.href = '/results';
             })
