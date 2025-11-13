@@ -2,7 +2,7 @@
 LLM Provider classes for various AI model APIs
 
 This module contains the base LLMProvider class and implementations
-for OpenAI, Anthropic, and Google Gemini APIs.
+for OpenAI, Anthropic, Google Gemini, and xAI APIs.
 """
 
 import requests
