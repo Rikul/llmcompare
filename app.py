@@ -53,32 +53,38 @@ AVAILABLE_MODELS = {
 
 class LLMProvider:
     """Base class for LLM providers"""
-    
+
     def __init__(self, api_key: str):
         self.api_key = api_key
-    
-    def call_api(self, model_id: str, prompt: str, endpoint: str) -> Dict[str, Any]:
+
+    def call_api(self, model_id: str, prompt: str, endpoint: str, system_prompt: str = None) -> Dict[str, Any]:
         raise NotImplementedError
 
 
 class OpenAIProvider(LLMProvider):
     """OpenAI API implementation"""
-    
-    def call_api(self, model_id: str, prompt: str, endpoint: str) -> Dict[str, Any]:
+
+    def call_api(self, model_id: str, prompt: str, endpoint: str, system_prompt: str = None) -> Dict[str, Any]:
         headers = {
             'Authorization': f'Bearer {self.api_key}',
             'Content-Type': 'application/json'
         }
+
+        messages = []
+        if system_prompt:
+            messages.append({'role': 'system', 'content': system_prompt})
+        messages.append({'role': 'user', 'content': prompt})
+
         data = {
             'model': model_id,
-            'messages': [{'role': 'user', 'content': prompt}],
+            'messages': messages,
             'temperature': 0.7,
             'max_tokens': 1000
         }
-        
+
         response = requests.post(endpoint, headers=headers, json=data, timeout=30)
         response.raise_for_status()
-        
+
         response_data = response.json()
         return {
             'content': response_data['choices'][0]['message']['content'],
@@ -88,8 +94,8 @@ class OpenAIProvider(LLMProvider):
 
 class AnthropicProvider(LLMProvider):
     """Anthropic API implementation"""
-    
-    def call_api(self, model_id: str, prompt: str, endpoint: str) -> Dict[str, Any]:
+
+    def call_api(self, model_id: str, prompt: str, endpoint: str, system_prompt: str = None) -> Dict[str, Any]:
         headers = {
             'x-api-key': self.api_key,
             'anthropic-version': '2023-06-01',
@@ -100,10 +106,13 @@ class AnthropicProvider(LLMProvider):
             'messages': [{'role': 'user', 'content': prompt}],
             'max_tokens': 1000
         }
-        
+
+        if system_prompt:
+            data['system'] = system_prompt
+
         response = requests.post(endpoint, headers=headers, json=data, timeout=30)
         response.raise_for_status()
-        
+
         response_data = response.json()
         return {
             'content': response_data['content'][0]['text'],
@@ -113,23 +122,30 @@ class AnthropicProvider(LLMProvider):
 
 class GoogleProvider(LLMProvider):
     """Google Gemini API implementation"""
-    
-    def call_api(self, model_id: str, prompt: str, endpoint: str) -> Dict[str, Any]:
+
+    def call_api(self, model_id: str, prompt: str, endpoint: str, system_prompt: str = None) -> Dict[str, Any]:
         headers = {
             'Content-Type': 'application/json'
         }
+
+        # Google Gemini handles system prompt differently
+        # We prepend it to the user prompt if provided
+        full_prompt = prompt
+        if system_prompt:
+            full_prompt = f"{system_prompt}\n\n{prompt}"
+
         data = {
-            'contents': [{'parts': [{'text': prompt}]}],
+            'contents': [{'parts': [{'text': full_prompt}]}],
             'generationConfig': {
                 'temperature': 0.7,
                 'maxOutputTokens': 1000
             }
         }
-        
+
         url = f"{endpoint}?key={self.api_key}"
         response = requests.post(url, headers=headers, json=data, timeout=30)
         response.raise_for_status()
-        
+
         response_data = response.json()
         return {
             'content': response_data['candidates'][0]['content']['parts'][0]['text'],
@@ -154,10 +170,10 @@ class LLMService:
             raise ValueError(f"Unknown provider: {provider_name}")
         return provider_class(api_key)
     
-    def call_model(self, model_id: str, prompt: str, model_info: Dict[str, Any]) -> Dict[str, Any]:
+    def call_model(self, model_id: str, prompt: str, model_info: Dict[str, Any], system_prompt: str = None) -> Dict[str, Any]:
         """Call a specific model with error handling"""
         api_key = os.getenv(model_info['api_key_env'])
-        
+
         if not api_key:
             return {
                 'model_name': model_info['name'],
@@ -167,11 +183,11 @@ class LLMService:
                 'status': 'error',
                 'error_type': 'missing_api_key'
             }
-        
+
         try:
             provider = self.get_provider(model_info['provider'], api_key)
-            result = provider.call_api(model_id, prompt, model_info['endpoint'])
-            
+            result = provider.call_api(model_id, prompt, model_info['endpoint'], system_prompt)
+
             return {
                 'model_name': model_info['name'],
                 'provider': model_info['provider'],
@@ -180,17 +196,17 @@ class LLMService:
                 'status': 'success',
                 'usage': result.get('usage', {})
             }
-            
+
         except requests.exceptions.HTTPError as e:
             error_msg = f"API Error: {e.response.status_code} - {e.response.text[:200]}"
             logger.error(f"HTTP Error for {model_id}: {error_msg}")
             return self._error_response(model_info, error_msg, 'api_error')
-            
+
         except requests.exceptions.Timeout:
             error_msg = "Request timed out. Please try again."
             logger.error(f"Timeout for {model_id}")
             return self._error_response(model_info, error_msg, 'timeout')
-            
+
         except Exception as e:
             error_msg = f"Unexpected error: {str(e)}"
             logger.error(f"Error for {model_id}: {error_msg}")
@@ -245,36 +261,37 @@ def get_models():
 def compare_models():
     """Compare responses from multiple models"""
     data = request.json
+    system_prompt = data.get('system_prompt', '').strip()
     prompt = data.get('prompt', '').strip()
     selected_models = data.get('models', [])
-    
+
     if not prompt:
         return jsonify({'error': 'Prompt is required'}), 400
-    
+
     if not selected_models:
         return jsonify({'error': 'At least one model must be selected'}), 400
-    
+
     # Check if any API keys are configured
     api_keys_configured = any([
         os.getenv('OPENAI_API_KEY'),
         os.getenv('ANTHROPIC_API_KEY'),
         os.getenv('GOOGLE_API_KEY')
     ])
-    
+
     if not api_keys_configured:
         return jsonify({'error': 'No API keys configured. Please add API keys to use this service.'}), 503
-    
+
     responses = {}
-    
+
     for model_id in selected_models:
         if model_id not in AVAILABLE_MODELS:
             continue
-        
+
         model_info = AVAILABLE_MODELS[model_id]
-        
-        # Real API call
-        responses[model_id] = llm_service.call_model(model_id, prompt, model_info)
-    
+
+        # Real API call with system prompt
+        responses[model_id] = llm_service.call_model(model_id, prompt, model_info, system_prompt if system_prompt else None)
+
     return jsonify(responses)
 
 

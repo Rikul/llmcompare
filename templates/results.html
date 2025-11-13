@@ -45,9 +45,17 @@
     <main class="container mx-auto px-4 py-8">
         <!-- Prompt Display -->
         <div class="bg-white rounded-lg shadow-md p-6 mb-8">
-            <h2 class="text-xl font-semibold mb-4 text-gray-800">Your Prompt</h2>
-            <div class="bg-gray-50 p-4 rounded-lg">
-                <pre class="whitespace-pre-wrap text-gray-700" id="promptDisplay"></pre>
+            <div id="systemPromptSection" class="hidden mb-6">
+                <h2 class="text-xl font-semibold mb-4 text-gray-800">System Prompt</h2>
+                <div class="bg-purple-50 p-4 rounded-lg border border-purple-200">
+                    <pre class="whitespace-pre-wrap text-gray-700" id="systemPromptDisplay"></pre>
+                </div>
+            </div>
+            <div>
+                <h2 class="text-xl font-semibold mb-4 text-gray-800">User Prompt</h2>
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <pre class="whitespace-pre-wrap text-gray-700" id="promptDisplay"></pre>
+                </div>
             </div>
         </div>
 
@@ -88,6 +96,7 @@
 
         // Load results from localStorage on page load
         window.addEventListener('DOMContentLoaded', function() {
+            const storedSystemPrompt = localStorage.getItem('comparisonSystemPrompt');
             const storedPrompt = localStorage.getItem('comparisonPrompt');
             const storedResults = localStorage.getItem('comparisonResults');
 
@@ -96,7 +105,13 @@
                     const prompt = storedPrompt;
                     const results = JSON.parse(storedResults);
 
-                    // Display prompt
+                    // Display system prompt if exists
+                    if (storedSystemPrompt && storedSystemPrompt.trim() !== '') {
+                        document.getElementById('systemPromptDisplay').textContent = storedSystemPrompt;
+                        document.getElementById('systemPromptSection').classList.remove('hidden');
+                    }
+
+                    // Display user prompt
                     document.getElementById('promptDisplay').textContent = prompt;
 
                     // Display results
