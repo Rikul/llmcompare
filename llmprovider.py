@@ -40,11 +40,11 @@ class OpenAIProvider(LLMProvider):
             if system_prompt:
                 input_messages.append({
                     'role': 'system',
-                    'content': [{'type': 'text', 'text': system_prompt}]
+                    'content': [{'type': 'input_text', 'text': system_prompt}]
                 })
             input_messages.append({
                 'role': 'user',
-                'content': [{'type': 'text', 'text': prompt}]
+                'content': [{'type': 'input_text', 'text': prompt}]
             })
 
             data = {
