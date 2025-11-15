@@ -13,7 +13,14 @@ import logging
 
 from anthropic import Anthropic
 import google.generativeai as genai
-from openai import OpenAI
+from openai import (
+    OpenAI,
+    OpenAIError,
+    APIError,
+    APIConnectionError,
+    RateLimitError,
+    APITimeoutError,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -237,19 +244,22 @@ class LLMService:
             logger.error(f"HTTP Error for {model_id}: {error_msg}")
             return self._error_response(model_info, error_msg, 'api_error')
 
-        except Exception as e:
-            # Handle potential Google API errors
-            if 'Google' in model_info['provider']:
-                error_msg = f"Google API Error: {str(e)}"
-                logger.error(f"Google API Error for {model_id}: {error_msg}")
-                return self._error_response(model_info, error_msg, 'google_api_error')
-
         except requests.exceptions.Timeout:
             error_msg = "Request timed out. Please try again."
             logger.error(f"Timeout for {model_id}")
             return self._error_response(model_info, error_msg, 'timeout')
 
+        except (OpenAIError, APIError, APIConnectionError, RateLimitError, APITimeoutError) as e:
+            error_msg = f"OpenAI API Error: {str(e)}"
+            logger.error(f"OpenAI Error for {model_id}: {error_msg}")
+            return self._error_response(model_info, error_msg, 'openai_api_error')
+
         except Exception as e:
+            if 'Google' in model_info['provider']:
+                error_msg = f"Google API Error: {str(e)}"
+                logger.error(f"Google API Error for {model_id}: {error_msg}")
+                return self._error_response(model_info, error_msg, 'google_api_error')
+
             error_msg = f"Unexpected error: {str(e)}"
             logger.error(f"Error for {model_id}: {error_msg}")
             return self._error_response(model_info, error_msg, 'unknown_error')
