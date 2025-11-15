@@ -12,7 +12,15 @@ from config import AVAILABLE_MODELS
 load_dotenv()
 
 # Configure logging
-logging.basicConfig(level=logging.INFO)
+#logging.basicConfig(level=logging.INFO)
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler('app.log'),  # Logs to file
+        logging.StreamHandler()  # Also logs to console
+    ]
+)
 logger = logging.getLogger(__name__)
 
 app = Flask(__name__)

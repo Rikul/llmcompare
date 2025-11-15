@@ -11,8 +11,9 @@ from datetime import datetime
 from typing import Dict, Any
 import logging
 
-logger = logging.getLogger(__name__)
+from anthropic import Anthropic
 
+logger = logging.getLogger(__name__)
 
 class LLMProvider:
     """Base class for LLM providers"""
@@ -99,39 +100,39 @@ class OpenAIProvider(LLMProvider):
 
 class AnthropicProvider(LLMProvider):
     """Anthropic API implementation"""
-
+    
     def call_api(self, model_id: str, prompt: str, endpoint: str, system_prompt: str = None) -> Dict[str, Any]:
-        headers = {
-            'x-api-key': self.api_key,
-            'anthropic-version': '2023-06-01',
-            'Content-Type': 'application/json'
-        }
-        data = {
-            'model': model_id,
-            'messages': [
+     
+        client = Anthropic(
+            api_key = self.api_key,  # This is the default and can be omitted
+        )
+
+        message = client.messages.create(
+            max_tokens=1024,
+            system=system_prompt if system_prompt else "",
+            messages=[
                 {
-                    'role': 'user',
-                    'content': [
-                        {
-                            'type': 'text',
-                            'text': prompt
-                        }
-                    ]
+                    "role": "user",
+                    "content": prompt,
                 }
             ],
-            'max_tokens': 1000
-        }
+            model=model_id,
+        )
 
-        if system_prompt:
-            data['system'] = system_prompt
-
-        response = requests.post(endpoint, headers=headers, json=data, timeout=30)
-        response.raise_for_status()
-
-        response_data = response.json()
+         # Extract text content from the response
+        content_text = ""
+        if message.content:
+            for block in message.content:
+                if hasattr(block, 'text'):
+                    content_text += block.text
+        
         return {
-            'content': response_data['content'][0]['text'],
-            'usage': response_data.get('usage', {})
+            'content': content_text,
+            'usage': {
+                'prompt_tokens': message.usage.input_tokens if hasattr(message, 'usage') else 0,
+                'completion_tokens': message.usage.output_tokens if hasattr(message, 'usage') else 0,
+                'total_tokens': (message.usage.input_tokens + message.usage.output_tokens) if hasattr(message, 'usage') else 0
+            }
         }
 
 
