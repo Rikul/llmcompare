@@ -5,7 +5,7 @@ import os
 from dotenv import load_dotenv
 from typing import Dict, List, Any
 import logging
-from llmprovider import LLMService
+from llm_service import LLMService
 from config import AVAILABLE_MODELS
 
 # Load environment variables
