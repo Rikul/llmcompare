@@ -33,22 +33,64 @@ class OpenAIProvider(LLMProvider):
             'Content-Type': 'application/json'
         }
 
-        messages = []
-        if system_prompt:
-            messages.append({'role': 'system', 'content': system_prompt})
-        messages.append({'role': 'user', 'content': prompt})
+        # Support both the legacy chat.completions endpoint and the new
+        # responses endpoint which is required for the latest OpenAI models
+        if endpoint.rstrip('/').endswith('responses'):
+            input_messages = []
+            if system_prompt:
+                input_messages.append({
+                    'role': 'system',
+                    'content': [{'type': 'input_text', 'text': system_prompt}]
+                })
+            input_messages.append({
+                'role': 'user',
+                'content': [{'type': 'input_text', 'text': prompt}]
+            })
 
-        data = {
-            'model': model_id,
-            'messages': messages,
-            'temperature': 0.7,
-            'max_tokens': 1000
-        }
+            data = {
+                'model': model_id,
+                'input': input_messages,
+                'temperature': 0.7,
+                'max_output_tokens': 1000
+            }
+        else:
+            messages = []
+            if system_prompt:
+                messages.append({'role': 'system', 'content': system_prompt})
+            messages.append({'role': 'user', 'content': prompt})
+
+            data = {
+                'model': model_id,
+                'messages': messages,
+                'temperature': 0.7,
+                'max_tokens': 1000
+            }
 
         response = requests.post(endpoint, headers=headers, json=data, timeout=30)
         response.raise_for_status()
 
         response_data = response.json()
+
+        if endpoint.rstrip('/').endswith('responses'):
+            # Responses endpoint returns data under the `output` key
+            output = response_data.get('output', [])
+            if not output:
+                raise ValueError('No output returned from OpenAI responses API')
+            content_parts = output[0].get('content', [])
+            if not content_parts:
+                raise ValueError('OpenAI responses output missing content')
+            text = ''.join(
+                part.get('text', '')
+                for part in content_parts
+                if part.get('type') in {'output_text', 'text'}
+            )
+            if not text:
+                text = content_parts[0].get('text', '')
+            return {
+                'content': text,
+                'usage': response_data.get('usage', {})
+            }
+
         return {
             'content': response_data['choices'][0]['message']['content'],
             'usage': response_data.get('usage', {})
@@ -66,7 +108,17 @@ class AnthropicProvider(LLMProvider):
         }
         data = {
             'model': model_id,
-            'messages': [{'role': 'user', 'content': prompt}],
+            'messages': [
+                {
+                    'role': 'user',
+                    'content': [
+                        {
+                            'type': 'text',
+                            'text': prompt
+                        }
+                    ]
+                }
+            ],
             'max_tokens': 1000
         }
 
@@ -98,7 +150,10 @@ class GoogleProvider(LLMProvider):
             full_prompt = f"{system_prompt}\n\n{prompt}"
 
         data = {
-            'contents': [{'parts': [{'text': full_prompt}]}],
+            'contents': [{
+                'role': 'user',
+                'parts': [{'text': full_prompt}]
+            }],
             'generationConfig': {
                 'temperature': 0.7,
                 'maxOutputTokens': 1000

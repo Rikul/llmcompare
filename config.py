@@ -9,13 +9,13 @@ AVAILABLE_MODELS = {
     # OpenAI Models
     'gpt-4o': {
         'name': 'GPT-4o',
-        'endpoint': 'https://api.openai.com/v1/chat/completions',
+        'endpoint': 'https://api.openai.com/v1/responses',
         'api_key_env': 'OPENAI_API_KEY',
         'provider': 'OpenAI'
     },
     'gpt-4-turbo': {
         'name': 'GPT-4 Turbo',
-        'endpoint': 'https://api.openai.com/v1/chat/completions',
+        'endpoint': 'https://api.openai.com/v1/responses',
         'api_key_env': 'OPENAI_API_KEY',
         'provider': 'OpenAI'
     },
@@ -27,7 +27,7 @@ AVAILABLE_MODELS = {
     },
     'o3-mini-2025-01-31': {
         'name': 'o3-mini',
-        'endpoint': 'https://api.openai.com/v1/chat/completions',
+        'endpoint': 'https://api.openai.com/v1/responses',
         'api_key_env': 'OPENAI_API_KEY',
         'provider': 'OpenAI'
     },
