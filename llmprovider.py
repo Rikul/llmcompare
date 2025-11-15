@@ -13,6 +13,14 @@ import logging
 
 from anthropic import Anthropic
 import google.generativeai as genai
+from openai import (
+    OpenAI,
+    OpenAIError,
+    APIError,
+    APIConnectionError,
+    RateLimitError,
+    APITimeoutError,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -29,12 +37,11 @@ class LLMProvider:
 class OpenAIProvider(LLMProvider):
     """OpenAI API implementation"""
 
-    def call_api(self, model_id: str, prompt: str, endpoint: str, system_prompt: str = None) -> Dict[str, Any]:
-        headers = {
-            'Authorization': f'Bearer {self.api_key}',
-            'Content-Type': 'application/json'
-        }
+    def __init__(self, api_key: str):
+        super().__init__(api_key)
+        self.client = OpenAI(api_key=api_key)
 
+    def call_api(self, model_id: str, prompt: str, endpoint: str, system_prompt: str = None) -> Dict[str, Any]:
         # Support both the legacy chat.completions endpoint and the new
         # responses endpoint which is required for the latest OpenAI models
         if endpoint.rstrip('/').endswith('responses'):
@@ -42,38 +49,22 @@ class OpenAIProvider(LLMProvider):
             if system_prompt:
                 input_messages.append({
                     'role': 'system',
-                    'content': [{'type': 'input_text', 'text': system_prompt}]
+                    'content': [{'type': 'text', 'text': system_prompt}]
                 })
             input_messages.append({
                 'role': 'user',
-                'content': [{'type': 'input_text', 'text': prompt}]
+                'content': [{'type': 'text', 'text': prompt}]
             })
 
-            data = {
-                'model': model_id,
-                'input': input_messages,
-                'temperature': 0.7,
-                'max_output_tokens': 1000
-            }
-        else:
-            messages = []
-            if system_prompt:
-                messages.append({'role': 'system', 'content': system_prompt})
-            messages.append({'role': 'user', 'content': prompt})
+            response = self.client.responses.create(
+                model=model_id,
+                input=input_messages,
+                temperature=0.7,
+                max_output_tokens=1000,
+            )
 
-            data = {
-                'model': model_id,
-                'messages': messages,
-                'temperature': 0.7,
-                'max_tokens': 1000
-            }
+            response_data = response.model_dump()
 
-        response = requests.post(endpoint, headers=headers, json=data, timeout=30)
-        response.raise_for_status()
-
-        response_data = response.json()
-
-        if endpoint.rstrip('/').endswith('responses'):
             # Responses endpoint returns data under the `output` key
             output = response_data.get('output', [])
             if not output:
@@ -92,6 +83,20 @@ class OpenAIProvider(LLMProvider):
                 'content': text,
                 'usage': response_data.get('usage', {})
             }
+
+        messages = []
+        if system_prompt:
+            messages.append({'role': 'system', 'content': system_prompt})
+        messages.append({'role': 'user', 'content': prompt})
+
+        response = self.client.chat.completions.create(
+            model=model_id,
+            messages=messages,
+            temperature=0.7,
+            max_tokens=1000,
+        )
+
+        response_data = response.model_dump()
 
         return {
             'content': response_data['choices'][0]['message']['content'],
@@ -239,19 +244,22 @@ class LLMService:
             logger.error(f"HTTP Error for {model_id}: {error_msg}")
             return self._error_response(model_info, error_msg, 'api_error')
 
-        except Exception as e:
-            # Handle potential Google API errors
-            if 'Google' in model_info['provider']:
-                error_msg = f"Google API Error: {str(e)}"
-                logger.error(f"Google API Error for {model_id}: {error_msg}")
-                return self._error_response(model_info, error_msg, 'google_api_error')
-
         except requests.exceptions.Timeout:
             error_msg = "Request timed out. Please try again."
             logger.error(f"Timeout for {model_id}")
             return self._error_response(model_info, error_msg, 'timeout')
 
+        except (OpenAIError, APIError, APIConnectionError, RateLimitError, APITimeoutError) as e:
+            error_msg = f"OpenAI API Error: {str(e)}"
+            logger.error(f"OpenAI Error for {model_id}: {error_msg}")
+            return self._error_response(model_info, error_msg, 'openai_api_error')
+
         except Exception as e:
+            if 'Google' in model_info['provider']:
+                error_msg = f"Google API Error: {str(e)}"
+                logger.error(f"Google API Error for {model_id}: {error_msg}")
+                return self._error_response(model_info, error_msg, 'google_api_error')
+
             error_msg = f"Unexpected error: {str(e)}"
             logger.error(f"Error for {model_id}: {error_msg}")
             return self._error_response(model_info, error_msg, 'unknown_error')
