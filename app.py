@@ -3,13 +3,12 @@ import os
 from dotenv import load_dotenv
 import logging
 
-# Import blueprints
-from routes.main import main_bp
-from routes.api import api_bp
-
 # Load environment variables
 load_dotenv()
 
+# Import blueprints
+from routes.main import main_bp
+from routes.api import api_bp
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
