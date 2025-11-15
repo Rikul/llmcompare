@@ -3,37 +3,30 @@ xAI (Grok) API Provider implementation
 """
 
 from typing import Dict, Any
-import requests
+from xai_sdk import Client
+from xai_sdk.chat import system, user
 
 from .base import LLMProvider
 
 
 class xAIProvider(LLMProvider):
-    """xAI (Grok) API implementation - OpenAI-compatible API"""
+    """xAI (Grok) API implementation"""
 
     def call_api(self, model_id: str, prompt: str, endpoint: str, system_prompt: str = None) -> Dict[str, Any]:
-        headers = {
-            'Authorization': f'Bearer {self.api_key}',
-            'Content-Type': 'application/json'
-        }
+        client = Client(api_key=self.api_key)
 
         messages = []
         if system_prompt:
-            messages.append({'role': 'system', 'content': system_prompt})
-        messages.append({'role': 'user', 'content': prompt})
+            messages.append(system(system_prompt))
 
-        data = {
-            'model': model_id,
-            'messages': messages,
-            'temperature': 0.7,
-            'max_tokens': 1000
-        }
+        chat = client.chat.create(
+            model=model_id,
+            messages=messages
+        )
+        chat.append(user(prompt))
+        response = chat.sample()
 
-        response = requests.post(endpoint, headers=headers, json=data, timeout=30)
-        response.raise_for_status()
-
-        response_data = response.json()
         return {
-            'content': response_data['choices'][0]['message']['content'],
-            'usage': response_data.get('usage', {})
+            'content': response.content,
+            'usage': {}
         }
