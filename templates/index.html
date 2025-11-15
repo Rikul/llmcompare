@@ -166,6 +166,59 @@
     </main>
 
     <script>
+        // Load saved values on page load
+        window.addEventListener('DOMContentLoaded', function() {
+            // Load saved prompts
+            const savedSystemPrompt = localStorage.getItem('comparisonSystemPrompt');
+            const savedPrompt = localStorage.getItem('comparisonPrompt');
+            
+            if (savedSystemPrompt) {
+                document.getElementById('systemPromptInput').value = savedSystemPrompt;
+            }
+            
+            if (savedPrompt) {
+                document.getElementById('promptInput').value = savedPrompt;
+            }
+
+            // Load saved model selections
+            const savedModels = localStorage.getItem('selectedModels');
+            if (savedModels) {
+                const modelIds = JSON.parse(savedModels);
+                modelIds.forEach(modelId => {
+                    const radio = document.querySelector(`.model-radio[value="${modelId}"]`);
+                    if (radio) {
+                        radio.checked = true;
+                    }
+                });
+            }
+        });
+
+        // Save selections when they change
+        document.querySelectorAll('.model-radio').forEach(radio => {
+            radio.addEventListener('change', function() {
+                const selectedModels = Array.from(document.querySelectorAll('.model-radio:checked'))
+                    .map(radio => radio.value);
+                localStorage.setItem('selectedModels', JSON.stringify(selectedModels));
+            });
+        });
+
+        // Save prompts as user types (with debouncing)
+        let systemPromptTimeout;
+        document.getElementById('systemPromptInput').addEventListener('input', function(e) {
+            clearTimeout(systemPromptTimeout);
+            systemPromptTimeout = setTimeout(() => {
+                localStorage.setItem('comparisonSystemPrompt', e.target.value);
+            }, 500);
+        });
+
+        let promptTimeout;
+        document.getElementById('promptInput').addEventListener('input', function(e) {
+            clearTimeout(promptTimeout);
+            promptTimeout = setTimeout(() => {
+                localStorage.setItem('comparisonPrompt', e.target.value);
+            }, 500);
+        });
+
         document.getElementById('compareButton').addEventListener('click', compareModels);
 
         function compareModels() {
@@ -210,6 +263,7 @@
                 localStorage.setItem('comparisonResults', JSON.stringify(data));
                 localStorage.setItem('comparisonSystemPrompt', systemPrompt);
                 localStorage.setItem('comparisonPrompt', prompt);
+                localStorage.setItem('selectedModels', JSON.stringify(selectedModels));
 
                 // Hide loading indicator before redirect
                 document.getElementById('loadingIndicator').classList.add('hidden');
@@ -244,5 +298,6 @@
             }
         });
     </script>
+    
 </body>
 </html>
