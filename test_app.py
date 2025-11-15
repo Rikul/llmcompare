@@ -9,6 +9,9 @@ import sys
 import time
 import os
 from typing import Dict, Any
+from dotenv import load_dotenv
+
+load_dotenv()
 
 class AppTester:
     def __init__(self, base_url: str = "http://localhost:5000"):
