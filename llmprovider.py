@@ -12,6 +12,7 @@ from typing import Dict, Any
 import logging
 
 from anthropic import Anthropic
+import google.generativeai as genai
 
 logger = logging.getLogger(__name__)
 
@@ -140,9 +141,7 @@ class GoogleProvider(LLMProvider):
     """Google Gemini API implementation"""
 
     def call_api(self, model_id: str, prompt: str, endpoint: str, system_prompt: str = None) -> Dict[str, Any]:
-        headers = {
-            'Content-Type': 'application/json'
-        }
+        genai.configure(api_key=self.api_key)
 
         # Google Gemini handles system prompt differently
         # We prepend it to the user prompt if provided
@@ -150,24 +149,11 @@ class GoogleProvider(LLMProvider):
         if system_prompt:
             full_prompt = f"{system_prompt}\n\n{prompt}"
 
-        data = {
-            'contents': [{
-                'role': 'user',
-                'parts': [{'text': full_prompt}]
-            }],
-            'generationConfig': {
-                'temperature': 0.7,
-                'maxOutputTokens': 1000
-            }
-        }
+        model = genai.GenerativeModel(model_id)
+        response = model.generate_content(full_prompt)
 
-        url = f"{endpoint}?key={self.api_key}"
-        response = requests.post(url, headers=headers, json=data, timeout=30)
-        response.raise_for_status()
-
-        response_data = response.json()
         return {
-            'content': response_data['candidates'][0]['content']['parts'][0]['text'],
+            'content': response.text,
             'usage': {}  # Google doesn't return usage in the same format
         }
 
@@ -252,6 +238,13 @@ class LLMService:
             error_msg = f"API Error: {e.response.status_code} - {e.response.text[:200]}"
             logger.error(f"HTTP Error for {model_id}: {error_msg}")
             return self._error_response(model_info, error_msg, 'api_error')
+
+        except Exception as e:
+            # Handle potential Google API errors
+            if 'Google' in model_info['provider']:
+                error_msg = f"Google API Error: {str(e)}"
+                logger.error(f"Google API Error for {model_id}: {error_msg}")
+                return self._error_response(model_info, error_msg, 'google_api_error')
 
         except requests.exceptions.Timeout:
             error_msg = "Request timed out. Please try again."
