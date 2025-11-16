@@ -144,31 +144,51 @@
 
     <script>
         // Fetch and render models on page load
+        async function fetchWithRetry(url, retries = 3, delay = 1000) {
+            for (let i = 0; i < retries; i++) {
+                try {
+                    const response = await fetch(url);
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response;
+                } catch (error) {
+                    if (i === retries - 1) throw error;
+                    await new Promise(res => setTimeout(res, delay));
+                }
+            }
+        }
+
         async function fetchAndRenderModels() {
             const loadingElement = document.getElementById('loading-models');
             const modelSelectionElement = document.getElementById('model-selection');
-            const cachedModels = localStorage.getItem('availableModels');
-
-            if (cachedModels) {
-                renderModels(JSON.parse(cachedModels));
-                loadingElement.style.display = 'none';
-                return;
-            }
 
             try {
-                const response = await fetch('/api/available_models');
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
+                const providersResponse = await fetchWithRetry('/api/providers');
+                const providers = await providersResponse.json();
+
+                if (providers.length === 0) {
+                    modelSelectionElement.innerHTML = '<p class="text-yellow-700">No providers configured.</p>';
+                    return;
                 }
-                const models = await response.json();
-                localStorage.setItem('availableModels', JSON.stringify(models));
-                renderModels(models);
+
+                const allModels = {};
+                for (const provider of providers) {
+                    try {
+                        const modelsResponse = await fetchWithRetry(`/api/models/${provider}`);
+                        const providerModels = await modelsResponse.json();
+                        Object.assign(allModels, providerModels);
+                    } catch (error) {
+                        console.error(`Failed to fetch models for provider: ${provider}`, error);
+                    }
+                }
+                renderModels(allModels);
             } catch (error) {
                 // Remove the loading element entirely on error
                 if (loadingElement && loadingElement.parentNode) {
                     loadingElement.parentNode.removeChild(loadingElement);
                 }
-                modelSelectionElement.innerHTML = '<p class="text-red-500">Failed to load models.</p>';
+                modelSelectionElement.innerHTML = '<p class="text-red-500">Failed to load models. Please try refreshing the page.</p>';
                 console.error('Error fetching models:', error);
             } finally {
                 // Only hide the loading element if it still exists
