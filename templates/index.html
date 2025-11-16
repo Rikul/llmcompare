@@ -172,16 +172,18 @@
                     return;
                 }
 
-                const allModels = {};
-                for (const provider of providers) {
+                // Fetch models for all providers in parallel for better performance
+                const modelPromises = providers.map(async provider => {
                     try {
                         const modelsResponse = await fetchWithRetry(`/api/models/${provider}`);
-                        const providerModels = await modelsResponse.json();
-                        Object.assign(allModels, providerModels);
+                        return await modelsResponse.json();
                     } catch (error) {
                         console.error(`Failed to fetch models for provider: ${provider}`, error);
+                        return {};
                     }
-                }
+                });
+                const results = await Promise.all(modelPromises);
+                const allModels = Object.assign({}, ...results);
                 renderModels(allModels);
             } catch (error) {
                 // Remove the loading element entirely on error
