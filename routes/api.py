@@ -53,6 +53,42 @@ def compare_models():
     return jsonify(responses)
 
 
+@api_bp.route('/api/compare_model', methods=['POST'])
+def compare_model():
+    """Compare a single model"""
+    data = request.json
+    system_prompt = data.get('system_prompt', '').strip()
+    prompt = data.get('prompt', '').strip()
+    model_id = data.get('model_id')
+
+    if not prompt:
+        return jsonify({'error': 'Prompt is required'}), 400
+
+    if not model_id:
+        return jsonify({'error': 'A model must be selected'}), 400
+
+    # Check if any API keys are configured
+    api_keys_configured = any([
+        os.getenv('OPENAI_API_KEY'),
+        os.getenv('ANTHROPIC_API_KEY'),
+        os.getenv('GEMINI_API_KEY'),
+        os.getenv('XAI_API_KEY')
+    ])
+
+    if not api_keys_configured:
+        return jsonify({'error': 'No API keys configured. Please add API keys to use this service.'}), 503
+
+    if model_id not in AVAILABLE_MODELS:
+        return jsonify({'error': 'Invalid model selected.'}), 400
+
+    model_info = AVAILABLE_MODELS[model_id]
+
+    # Real API call with system prompt
+    response = llm_service.call_model(model_id, prompt, model_info, system_prompt if system_prompt else None)
+
+    return jsonify(response)
+
+
 @api_bp.route('/health', methods=['GET'])
 def health_check():
     """Health check endpoint"""

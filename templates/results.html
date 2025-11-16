@@ -103,19 +103,8 @@
         </div>
     </main>
 
-    <!-- Loading Indicator -->
-    <div id="loadingIndicator" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center z-50">
-        <div class="bg-white p-8 rounded-lg shadow-xl">
-            <div class="flex items-center">
-                <div class="loading-spinner ease-linear rounded-full border-8 border-t-8 border-gray-200 h-16 w-16"></div>
-                <p class="ml-4 text-lg font-medium">Getting Responses...</p>
-            </div>
-        </div>
-    </div>
-
     <script>
         let currentTab = null;
-        let modelResponses = {};
 
         // Load results from sessionStorage on page load
         window.addEventListener('DOMContentLoaded', function() {
@@ -131,106 +120,54 @@
                 }
                 document.getElementById('promptDisplay').textContent = storedPrompt;
 
-                // Make API call
-                fetchResults(storedSystemPrompt, storedPrompt, JSON.parse(storedModels));
+                const models = JSON.parse(storedModels);
+                createInitialLayout(models);
+                fetchResults(storedSystemPrompt, storedPrompt, models);
             } else {
                 showNoResults();
             }
         });
 
-        function fetchResults(systemPrompt, prompt, models) {
-            // Show loading indicator
-            document.getElementById('loadingIndicator').classList.remove('hidden');
-            // Make API call
-            fetch('/api/compare', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    system_prompt: systemPrompt,
-                    prompt: prompt,
-                    models: models
-                })
-            })
-            .then(response => {
-                if (!response.ok) {
-                    return response.json().then(err => Promise.reject(err));
-                }
-                return response.json();
-            })
-            .then(data => {
-                // Store results in sessionStorage
-                sessionStorage.setItem('comparisonResults', JSON.stringify(data));
-                // Hide loading indicator
-                document.getElementById('loadingIndicator').classList.add('hidden');
-                // Display results
-                modelResponses = data;
-                displayResults(data);
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                document.getElementById('loadingIndicator').classList.add('hidden');
-
-                if (error && typeof error === 'object') {
-                    if (error.error) {
-                        alert(error.error);
-                    } else if (error.message) {
-                        alert(error.message);
-                    } else {
-                        alert('An error occurred: ' + JSON.stringify(error));
-                    }
-                } else {
-                    alert('An error occurred while comparing models. Please check your API keys and try again.');
-                }
-                showNoResults();
-            });
-        }
-
-        function displayResults(responses) {
-            const resultsSection = document.getElementById('resultsSection');
+        function createInitialLayout(models) {
             const tabsContainer = document.getElementById('tabsContainer');
             const tabContent = document.getElementById('tabContent');
 
-            // Clear previous results
             tabsContainer.innerHTML = '';
             tabContent.innerHTML = '';
 
-            // Create tabs and content for each model
             let firstTab = true;
-            for (const [modelId, response] of Object.entries(responses)) {
+            for (const modelId of models) {
                 // Create tab
                 const tab = document.createElement('a');
                 tab.href = '#';
+                tab.id = `tab-link-${modelId}`;
+                tab.textContent = modelId; // Placeholder name
                 tab.className = `py-2 px-1 border-b-2 font-medium text-sm ${firstTab ? 'border-purple-600 text-purple-600 tab-active' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`;
-                tab.textContent = response.model_name;
                 tab.onclick = (e) => {
                     e.preventDefault();
                     showTab(modelId);
                 };
                 tabsContainer.appendChild(tab);
 
-                // Create content
+                // Create content placeholder
                 const content = document.createElement('div');
                 content.id = `tab-${modelId}`;
                 content.className = `tab-pane ${firstTab ? '' : 'hidden'}`;
                 content.innerHTML = `
                     <div class="space-y-4">
                         <div class="flex justify-between items-center">
-                            <h3 class="text-lg font-semibold">${response.model_name}</h3>
-                            <span class="text-sm text-gray-500">${response.provider}</span>
+                            <h3 class="text-lg font-semibold" id="model-name-${modelId}">${modelId}</h3>
+                            <span class="text-sm text-gray-500" id="provider-${modelId}"></span>
                         </div>
                         <div class="relative">
                             <div class="response-container bg-gray-50 p-4 rounded-lg">
-                                <pre class="whitespace-pre-wrap text-gray-700" id="response-${modelId}">${response.response}</pre>
+                                <div class="flex items-center">
+                                    <div class="loading-spinner ease-linear rounded-full border-4 border-t-4 border-gray-200 h-6 w-6"></div>
+                                    <p class="ml-2 text-gray-500">Loading...</p>
+                                </div>
                             </div>
-                            <button class="copy-button" onclick="copyToClipboard('response-${modelId}', this)">
-                                Copy
-                            </button>
                         </div>
-                        <div class="text-sm text-gray-500">
-                            Response time: ${new Date(response.timestamp).toLocaleString()}
-                        </div>
+                        <div class="text-sm text-gray-500" id="timestamp-${modelId}"></div>
                     </div>
                 `;
                 tabContent.appendChild(content);
@@ -240,21 +177,112 @@
                     firstTab = false;
                 }
             }
+        }
 
-            // Show results section
-            resultsSection.classList.remove('hidden');
+        function fetchResults(systemPrompt, prompt, models) {
+            models.forEach(modelId => {
+                fetch('/api/compare_model', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        system_prompt: systemPrompt,
+                        prompt: prompt,
+                        model_id: modelId
+                    })
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        return response.json().then(err => Promise.reject(err));
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    updateModelResult(modelId, data);
+                })
+                .catch(error => {
+                    console.error('Error for model ' + modelId + ':', error);
+                    let errorMessage = 'An error occurred.';
+                    if (error && typeof error === 'object') {
+                        if (error.error) {
+                            errorMessage = error.error;
+                        } else if (error.message) {
+                            errorMessage = error.message;
+                        } else {
+                            errorMessage = JSON.stringify(error);
+                        }
+                    } else {
+                        errorMessage = error;
+                    }
+                    updateModelResultWithError(modelId, errorMessage);
+                });
+            });
+        }
+
+        function updateModelResult(modelId, response) {
+            const tabLink = document.getElementById(`tab-link-${modelId}`);
+            if (tabLink) {
+                tabLink.textContent = response.model_name;
+            }
+
+            const modelName = document.getElementById(`model-name-${modelId}`);
+            if (modelName) {
+                modelName.textContent = response.model_name;
+            }
+
+            const provider = document.getElementById(`provider-${modelId}`);
+            if (provider) {
+                provider.textContent = response.provider;
+            }
+
+            const tabPane = document.getElementById(`tab-${modelId}`);
+            const content = tabPane.querySelector('.response-container');
+            if (content) {
+                content.innerHTML = `
+                    <pre class="whitespace-pre-wrap text-gray-700" id="response-${modelId}">${response.response}</pre>
+                `;
+                const button = document.createElement('button');
+                button.className = 'copy-button';
+                button.textContent = 'Copy';
+                button.onclick = () => copyToClipboard(`response-${modelId}`, button);
+                content.parentElement.appendChild(button);
+            }
+
+            const timestamp = document.getElementById(`timestamp-${modelId}`);
+            if (timestamp) {
+                timestamp.innerHTML = `Response time: ${new Date(response.timestamp).toLocaleString()}`;
+            }
+        }
+
+        function updateModelResultWithError(modelId, error) {
+            const tabLink = document.getElementById(`tab-link-${modelId}`);
+            if (tabLink) {
+                tabLink.textContent = modelId;
+            }
+
+            const modelName = document.getElementById(`model-name-${modelId}`);
+            if (modelName) {
+                modelName.textContent = modelId;
+            }
+
+            const tabPane = document.getElementById(`tab-${modelId}`);
+            const content = tabPane.querySelector('.response-container');
+            if (content) {
+                content.innerHTML = `<pre class="whitespace-pre-wrap text-red-500">${error}</pre>`;
+            }
         }
 
         function showTab(modelId) {
             // Update tabs
             const tabs = document.querySelectorAll('#tabsContainer a');
-            tabs.forEach((tab, index) => {
-                if (Object.keys(modelResponses)[index] === modelId) {
-                    tab.classList.remove('border-transparent', 'text-gray-500');
+            tabs.forEach(tab => {
+                if (tab.id === `tab-link-${modelId}`) {
+                    tab.classList.remove('border-transparent', 'text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300');
                     tab.classList.add('border-purple-600', 'text-purple-600', 'tab-active');
                 } else {
                     tab.classList.remove('border-purple-600', 'text-purple-600', 'tab-active');
-                    tab.classList.add('border-transparent', 'text-gray-500');
+                    tab.classList.add('border-transparent', 'text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300');
                 }
             });
 
