@@ -35,11 +35,42 @@ class xAIProvider(LLMProvider):
         }
 
     def get_models(self) -> Dict[str, Any]:
-        """Get available xAI models from config"""
+        """Get available xAI models from API"""
+        # First, try to return models from the config for this provider
         if self.available_models:
-            return {
+            xai_models = {
                 model_id: model_info
                 for model_id, model_info in self.available_models.items()
                 if model_info.get('provider') == 'xAI'
             }
-        return {}
+            if xai_models:
+                return xai_models
+        
+        # Fallback to API call if config is not available
+        if self.api_key == "dummy_key":
+            return {}
+        
+        try:
+            client = Client(api_key=self.api_key)
+            models = client.models.list_language_models()
+            
+            # Format the models
+            return {
+                model.id: {
+                    "name": model.name if hasattr(model, 'name') else model.id,
+                    "provider": "xAI",
+                    "endpoint": "https://api.x.ai/v1/chat/completions",
+                    "api_key_env": "XAI_API_KEY"
+                }
+                for model in models
+            }
+        except Exception as e:
+            # Handle API errors gracefully - return config models if available
+            print(f"Error fetching xAI models from API: {e}")
+            if self.available_models:
+                return {
+                    model_id: model_info
+                    for model_id, model_info in self.available_models.items()
+                    if model_info.get('provider') == 'xAI'
+                }
+            return {}

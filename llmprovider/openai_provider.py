@@ -103,11 +103,13 @@ class OpenAIProvider(LLMProvider):
                     "name": "gpt-3.5-turbo",
                     "provider": "OpenAI",
                     "endpoint": "chat/completions",
+                    "api_key_env": "OPENAI_API_KEY"
                 },
                 "gpt-4": {
                     "name": "gpt-4",
                     "provider": "OpenAI",
                     "endpoint": "chat/completions",
+                    "api_key_env": "OPENAI_API_KEY"
                 },
             }
         try:
@@ -121,6 +123,7 @@ class OpenAIProvider(LLMProvider):
                     "name": model.id,
                     "provider": "OpenAI",
                     "endpoint": "responses" if model.id in responses_models else "chat/completions",
+                    "api_key_env": "OPENAI_API_KEY"
                 }
                 for model in models
                 if model.id.startswith("gpt") or model.id.startswith("o3-")

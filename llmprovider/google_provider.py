@@ -32,11 +32,43 @@ class GoogleProvider(LLMProvider):
         }
 
     def get_models(self) -> Dict[str, Any]:
-        """Get available Google models from config"""
+        """Get available Google models from API"""
+        # First, try to return models from the config for this provider
         if self.available_models:
-            return {
+            google_models = {
                 model_id: model_info
                 for model_id, model_info in self.available_models.items()
                 if model_info.get('provider') == 'Google'
             }
-        return {}
+            if google_models:
+                return google_models
+        
+        # Fallback to API call if config is not available
+        if self.api_key == "dummy_key":
+            return {}
+        
+        try:
+            genai.configure(api_key=self.api_key)
+            models = genai.list_models()
+            
+            # Filter for models that support generateContent
+            return {
+                model.name.replace('models/', ''): {
+                    "name": model.display_name if hasattr(model, 'display_name') else model.name.replace('models/', ''),
+                    "provider": "Google",
+                    "endpoint": f"https://generativelanguage.googleapis.com/v1beta/{model.name}:generateContent",
+                    "api_key_env": "GEMINI_API_KEY"
+                }
+                for model in models
+                if 'generateContent' in getattr(model, 'supported_generation_methods', [])
+            }
+        except Exception as e:
+            # Handle API errors gracefully - return config models if available
+            print(f"Error fetching Google models from API: {e}")
+            if self.available_models:
+                return {
+                    model_id: model_info
+                    for model_id, model_info in self.available_models.items()
+                    if model_info.get('provider') == 'Google'
+                }
+            return {}
