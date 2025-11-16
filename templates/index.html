@@ -169,8 +169,8 @@
         // Load saved values on page load
         window.addEventListener('DOMContentLoaded', function() {
             // Load saved prompts
-            const savedSystemPrompt = localStorage.getItem('comparisonSystemPrompt');
-            const savedPrompt = localStorage.getItem('comparisonPrompt');
+            const savedSystemPrompt = sessionStorage.getItem('comparisonSystemPrompt');
+            const savedPrompt = sessionStorage.getItem('comparisonPrompt');
             
             if (savedSystemPrompt) {
                 document.getElementById('systemPromptInput').value = savedSystemPrompt;
@@ -181,7 +181,7 @@
             }
 
             // Load saved model selections
-            const savedModels = localStorage.getItem('selectedModels');
+            const savedModels = sessionStorage.getItem('selectedModels');
             if (savedModels) {
                 const modelIds = JSON.parse(savedModels);
                 modelIds.forEach(modelId => {
@@ -198,7 +198,7 @@
             radio.addEventListener('change', function() {
                 const selectedModels = Array.from(document.querySelectorAll('.model-radio:checked'))
                     .map(radio => radio.value);
-                localStorage.setItem('selectedModels', JSON.stringify(selectedModels));
+                sessionStorage.setItem('selectedModels', JSON.stringify(selectedModels));
             });
         });
 
@@ -207,7 +207,7 @@
         document.getElementById('systemPromptInput').addEventListener('input', function(e) {
             clearTimeout(systemPromptTimeout);
             systemPromptTimeout = setTimeout(() => {
-                localStorage.setItem('comparisonSystemPrompt', e.target.value);
+                sessionStorage.setItem('comparisonSystemPrompt', e.target.value);
             }, 500);
         });
 
@@ -215,7 +215,7 @@
         document.getElementById('promptInput').addEventListener('input', function(e) {
             clearTimeout(promptTimeout);
             promptTimeout = setTimeout(() => {
-                localStorage.setItem('comparisonPrompt', e.target.value);
+                sessionStorage.setItem('comparisonPrompt', e.target.value);
             }, 500);
         });
 
@@ -237,10 +237,10 @@
                 return;
             }
 
-            // Store prompts and selected models in localStorage
-            localStorage.setItem('comparisonSystemPrompt', systemPrompt);
-            localStorage.setItem('selectedModels', JSON.stringify(selectedModels));
-
+            // Store prompts and selected models in session storage
+            sessionStorage.setItem('comparisonSystemPrompt', systemPrompt);
+            sessionStorage.setItem('selectedModels', JSON.stringify(selectedModels));
+            
             // Redirect to results page
             window.location.href = '/results';
         }

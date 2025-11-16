@@ -117,11 +117,11 @@
         let currentTab = null;
         let modelResponses = {};
 
-        // Load results from localStorage on page load
+        // Load results from sessionStorage on page load
         window.addEventListener('DOMContentLoaded', function() {
-            const storedSystemPrompt = localStorage.getItem('comparisonSystemPrompt');
-            const storedPrompt = localStorage.getItem('comparisonPrompt');
-            const storedModels = localStorage.getItem('selectedModels');
+            const storedSystemPrompt = sessionStorage.getItem('comparisonSystemPrompt');
+            const storedPrompt = sessionStorage.getItem('comparisonPrompt');
+            const storedModels = sessionStorage.getItem('selectedModels');
 
             if (storedPrompt && storedModels) {
                 // Display prompts
@@ -160,8 +160,8 @@
                 return response.json();
             })
             .then(data => {
-                // Store results in localStorage
-                localStorage.setItem('comparisonResults', JSON.stringify(data));
+                // Store results in sessionStorage
+                sessionStorage.setItem('comparisonResults', JSON.stringify(data));
                 // Hide loading indicator
                 document.getElementById('loadingIndicator').classList.add('hidden');
                 // Display results
