@@ -2,7 +2,7 @@ import requests
 import json
 import os
 
-def test_compare_model_endpoint():
+def test_model_endpoint():
     # Set the base URL for the Flask app
     base_url = "http://localhost:5000"
 
@@ -19,14 +19,14 @@ def test_compare_model_endpoint():
     models = response.json()
     model_ids = list(models.keys())
 
-    # Test the /api/compare_model endpoint
+    # Test the /api/get_model_response endpoint
     test_data = {
         "prompt": "What is the capital of France?",
         "model_id": model_ids[0]
     }
 
     response = requests.post(
-        f"{base_url}/api/compare_model",
+        f"{base_url}/api/get_model_response",
         json=test_data,
         headers={"Content-Type": "application/json"}
     )
@@ -41,4 +41,4 @@ def test_compare_model_endpoint():
     print("Test passed!")
 
 if __name__ == "__main__":
-    test_compare_model_endpoint()
+    test_model_endpoint()

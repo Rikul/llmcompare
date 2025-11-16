@@ -181,7 +181,7 @@
 
         function fetchResults(systemPrompt, prompt, models) {
             models.forEach(modelId => {
-                fetch('/api/compare_model', {
+                fetch('/api/get_model_response', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
