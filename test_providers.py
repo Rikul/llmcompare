@@ -3,8 +3,8 @@
 Test script for LLM provider model listing functionality
 
 This script tests that each provider:
-1. Can fetch models from SDK APIs when real API keys are provided
-2. Falls back to config when API keys are invalid or missing
+1. Can fetch models from SDK APIs when real API keys are provided (primary method)
+2. Falls back to config when API keys are invalid or API calls fail
 3. Properly formats the model data structure
 """
 
@@ -246,8 +246,8 @@ class ProviderTester:
         self.print_header("LLM Provider Model Listing Tests")
         
         print("\nThis test verifies that:")
-        print("1. All providers fall back to config when using dummy keys")
-        print("2. All providers can fetch models from SDKs when real API keys are provided")
+        print("1. All providers use SDK calls as the primary method when API keys are valid")
+        print("2. All providers fall back to config when API calls fail or keys are invalid")
         print("3. All model data structures include required fields")
         
         self.test_openai_provider()
