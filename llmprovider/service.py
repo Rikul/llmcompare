@@ -63,6 +63,40 @@ class LLMService:
                     logger.error(f"Error fetching models for {provider_name}: {e}")
         return available_models
 
+    def get_available_providers(self) -> Dict[str, Any]:
+        """Get all available providers from configured providers"""
+        available_providers = []
+        for provider_name in self.providers.keys():
+            api_key_env = f"{provider_name.upper()}_API_KEY"
+            if provider_name == 'Google':
+                api_key_env = "GEMINI_API_KEY"
+            elif provider_name == 'xAI':
+                api_key_env = "XAI_API_KEY"
+
+            api_key = os.getenv(api_key_env)
+            if api_key:
+                available_providers.append(provider_name)
+        return available_providers
+
+    def get_available_models_by_provider(self, provider_name: str) -> Dict[str, Any]:
+        """Get all available models from a specific configured provider"""
+        available_models = {}
+        api_key_env = f"{provider_name.upper()}_API_KEY"
+        if provider_name == 'Google':
+            api_key_env = "GEMINI_API_KEY"
+        elif provider_name == 'xAI':
+            api_key_env = "XAI_API_KEY"
+
+        api_key = os.getenv(api_key_env)
+        if api_key:
+            try:
+                provider = self.get_provider(provider_name, api_key)
+                models = provider.get_models()
+                available_models.update(models)
+            except Exception as e:
+                logger.error(f"Error fetching models for {provider_name}: {e}")
+        return available_models
+
     def call_model(self, model_id: str, prompt: str, model_info: Dict[str, Any], system_prompt: str = None) -> Dict[str, Any]:
         """Call a specific model with error handling"""
         api_key = os.getenv(model_info['api_key_env'])

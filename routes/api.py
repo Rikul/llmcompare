@@ -21,6 +21,20 @@ def get_available_models():
     return jsonify(models)
 
 
+@api_bp.route('/api/providers', methods=['GET'])
+def get_providers():
+    """Get available providers with API keys"""
+    providers = llm_service.get_available_providers()
+    return jsonify(providers)
+
+
+@api_bp.route('/api/models/<provider>', methods=['GET'])
+def get_models_by_provider(provider):
+    """Get available models from a specific provider with API keys"""
+    models = llm_service.get_available_models_by_provider(provider)
+    return jsonify(models)
+
+
 @api_bp.route('/api/get_model_response', methods=['POST'])
 def get_model_response():
     """Compare a single model"""
