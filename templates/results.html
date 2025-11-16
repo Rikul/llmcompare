@@ -172,8 +172,14 @@
                 console.error('Error:', error);
                 document.getElementById('loadingIndicator').classList.add('hidden');
 
-                if (error.error) {
-                    alert(error.error);
+                if (error && typeof error === 'object') {
+                    if (error.error) {
+                        alert(error.error);
+                    } else if (error.message) {
+                        alert(error.message);
+                    } else {
+                        alert('An error occurred: ' + JSON.stringify(error));
+                    }
                 } else {
                     alert('An error occurred while comparing models. Please check your API keys and try again.');
                 }
