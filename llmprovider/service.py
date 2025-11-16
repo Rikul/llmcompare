@@ -28,20 +28,21 @@ logger = logging.getLogger(__name__)
 class LLMService:
     """Service class to handle LLM API calls"""
 
-    def __init__(self):
+    def __init__(self, available_models: Dict[str, Any] = None):
         self.providers = {
             'OpenAI': OpenAIProvider,
             'Anthropic': AnthropicProvider,
             'Google': GoogleProvider,
             'xAI': xAIProvider
         }
+        self.available_models = available_models or {}
 
     def get_provider(self, provider_name: str, api_key: str) -> LLMProvider:
         """Get the appropriate provider instance"""
         provider_class = self.providers.get(provider_name)
         if not provider_class:
             raise ValueError(f"Unknown provider: {provider_name}")
-        return provider_class(api_key)
+        return provider_class(api_key, self.available_models)
 
     def get_available_models(self) -> Dict[str, Any]:
         """Get all available models from configured providers"""

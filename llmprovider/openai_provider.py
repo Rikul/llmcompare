@@ -18,8 +18,8 @@ from .base import LLMProvider
 class OpenAIProvider(LLMProvider):
     """OpenAI API implementation"""
 
-    def __init__(self, api_key: str):
-        super().__init__(api_key)
+    def __init__(self, api_key: str, available_models: Dict[str, Any] = None):
+        super().__init__(api_key, available_models)
         self.client = OpenAI(api_key=api_key)
 
     def call_api(self, model_id: str, prompt: str, endpoint: str, system_prompt: str = None) -> Dict[str, Any]:
@@ -86,6 +86,17 @@ class OpenAIProvider(LLMProvider):
 
     def get_models(self) -> Dict[str, Any]:
         """Get available models from OpenAI"""
+        # First, try to return models from the config for this provider
+        if self.available_models:
+            openai_models = {
+                model_id: model_info
+                for model_id, model_info in self.available_models.items()
+                if model_info.get('provider') == 'OpenAI'
+            }
+            if openai_models:
+                return openai_models
+        
+        # Fallback to API call if config is not available
         if self.api_key == "dummy_key":
             return {
                 "gpt-3.5-turbo": {
@@ -115,6 +126,12 @@ class OpenAIProvider(LLMProvider):
                 if model.id.startswith("gpt") or model.id.startswith("o3-")
             }
         except (OpenAIError, APIError, APIConnectionError, RateLimitError, APITimeoutError) as e:
-            # Handle API errors gracefully
-            print(f"Error fetching OpenAI models: {e}")
+            # Handle API errors gracefully - return config models if available
+            print(f"Error fetching OpenAI models from API: {e}")
+            if self.available_models:
+                return {
+                    model_id: model_info
+                    for model_id, model_info in self.available_models.items()
+                    if model_info.get('provider') == 'OpenAI'
+                }
             return {}
