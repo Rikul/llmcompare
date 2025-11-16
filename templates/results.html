@@ -23,6 +23,19 @@
             max-height: 500px;
             overflow-y: auto;
         }
+        .loading-spinner {
+            border-top-color: #667eea;
+            -webkit-animation: spinner 1.5s linear infinite;
+            animation: spinner 1.5s linear infinite;
+        }
+        @-webkit-keyframes spinner {
+            0% { -webkit-transform: rotate(0deg); }
+            100% { -webkit-transform: rotate(360deg); }
+        }
+        @keyframes spinner {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body class="bg-gray-50">
@@ -90,6 +103,16 @@
         </div>
     </main>
 
+    <!-- Loading Indicator -->
+    <div id="loadingIndicator" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center z-50">
+        <div class="bg-white p-8 rounded-lg shadow-xl">
+            <div class="flex items-center">
+                <div class="loading-spinner ease-linear rounded-full border-8 border-t-8 border-gray-200 h-16 w-16"></div>
+                <p class="ml-4 text-lg font-medium">Getting Responses...</p>
+            </div>
+        </div>
+    </div>
+
     <script>
         let currentTab = null;
         let modelResponses = {};
@@ -98,33 +121,65 @@
         window.addEventListener('DOMContentLoaded', function() {
             const storedSystemPrompt = localStorage.getItem('comparisonSystemPrompt');
             const storedPrompt = localStorage.getItem('comparisonPrompt');
-            const storedResults = localStorage.getItem('comparisonResults');
+            const storedModels = localStorage.getItem('selectedModels');
 
-            if (storedPrompt && storedResults) {
-                try {
-                    const prompt = storedPrompt;
-                    const results = JSON.parse(storedResults);
-
-                    // Display system prompt if exists
-                    if (storedSystemPrompt && storedSystemPrompt.trim() !== '') {
-                        document.getElementById('systemPromptDisplay').textContent = storedSystemPrompt;
-                        document.getElementById('systemPromptSection').classList.remove('hidden');
-                    }
-
-                    // Display user prompt
-                    document.getElementById('promptDisplay').textContent = prompt;
-
-                    // Display results
-                    modelResponses = results;
-                    displayResults(results);
-                } catch (error) {
-                    console.error('Error loading results:', error);
-                    showNoResults();
+            if (storedPrompt && storedModels) {
+                // Display prompts
+                if (storedSystemPrompt && storedSystemPrompt.trim() !== '') {
+                    document.getElementById('systemPromptDisplay').textContent = storedSystemPrompt;
+                    document.getElementById('systemPromptSection').classList.remove('hidden');
                 }
+                document.getElementById('promptDisplay').textContent = storedPrompt;
+
+                // Make API call
+                fetchResults(storedSystemPrompt, storedPrompt, JSON.parse(storedModels));
             } else {
                 showNoResults();
             }
         });
+
+        function fetchResults(systemPrompt, prompt, models) {
+            // Show loading indicator
+            document.getElementById('loadingIndicator').classList.remove('hidden');
+            // Make API call
+            fetch('/api/compare', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    system_prompt: systemPrompt,
+                    prompt: prompt,
+                    models: models
+                })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(err => Promise.reject(err));
+                }
+                return response.json();
+            })
+            .then(data => {
+                // Store results in localStorage
+                localStorage.setItem('comparisonResults', JSON.stringify(data));
+                // Hide loading indicator
+                document.getElementById('loadingIndicator').classList.add('hidden');
+                // Display results
+                modelResponses = data;
+                displayResults(data);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                document.getElementById('loadingIndicator').classList.add('hidden');
+
+                if (error.error) {
+                    alert(error.error);
+                } else {
+                    alert('An error occurred while comparing models. Please check your API keys and try again.');
+                }
+                showNoResults();
+            });
+        }
 
         function displayResults(responses) {
             const resultsSection = document.getElementById('resultsSection');

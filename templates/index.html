@@ -237,49 +237,13 @@
                 return;
             }
 
-            // Show loading indicator
-            document.getElementById('loadingIndicator').classList.remove('hidden');
+            // Store prompts and selected models in localStorage
+            localStorage.setItem('comparisonSystemPrompt', systemPrompt);
+            localStorage.setItem('comparisonPrompt', prompt);
+            localStorage.setItem('selectedModels', JSON.stringify(selectedModels));
 
-            // Make API call
-            fetch('/api/compare', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    system_prompt: systemPrompt,
-                    prompt: prompt,
-                    models: selectedModels
-                })
-            })
-            .then(response => {
-                if (!response.ok) {
-                    return response.json().then(err => Promise.reject(err));
-                }
-                return response.json();
-            })
-            .then(data => {
-                // Store results and prompts in localStorage
-                localStorage.setItem('comparisonResults', JSON.stringify(data));
-                localStorage.setItem('comparisonSystemPrompt', systemPrompt);
-                localStorage.setItem('comparisonPrompt', prompt);
-                localStorage.setItem('selectedModels', JSON.stringify(selectedModels));
-
-                // Hide loading indicator before redirect
-                document.getElementById('loadingIndicator').classList.add('hidden');
-                // Redirect to results page
-                window.location.href = '/results';
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                document.getElementById('loadingIndicator').classList.add('hidden');
-
-                if (error.error) {
-                    alert(error.error);
-                } else {
-                    alert('An error occurred while comparing models. Please check your API keys and try again.');
-                }
-            });
+            // Redirect to results page
+            window.location.href = '/results';
         }
 
         // Add enter key support for prompt input (Ctrl+Enter to submit)
