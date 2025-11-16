@@ -44,3 +44,7 @@ class AnthropicProvider(LLMProvider):
                 'total_tokens': (message.usage.input_tokens + message.usage.output_tokens) if hasattr(message, 'usage') else 0
             }
         }
+
+    def get_models(self) -> Dict[str, Any]:
+        """Anthropic API does not support fetching models"""
+        return {}

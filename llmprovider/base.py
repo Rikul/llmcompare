@@ -13,3 +13,7 @@ class LLMProvider:
 
     def call_api(self, model_id: str, prompt: str, endpoint: str, system_prompt: str = None) -> Dict[str, Any]:
         raise NotImplementedError
+
+    def get_models(self) -> Dict[str, Any]:
+        """Get available models from the provider"""
+        raise NotImplementedError

@@ -82,31 +82,8 @@
                         {% set _ = providers[model_info.provider].append((model_id, model_info)) %}
                     {% endfor %}
 
-                    <div class="space-y-4">
-                        {% for provider, provider_models in providers.items() %}
-                        <div class="provider-group">
-                            <h3 class="text-sm font-semibold text-gray-600 uppercase mb-2 pb-1 border-b border-gray-200">{{ provider }}</h3>
-                            <div class="space-y-1">
-                                {% for model_id, model_info in provider_models %}
-                                    {% set api_key_configured = api_keys_status.get(model_info.provider, False) %}
-                                    {% if api_key_configured %}
-                                    <label class="model-card flex items-center p-2 rounded border border-gray-200 cursor-pointer hover:border-purple-400 hover:bg-purple-50 transition-all">
-                                        <input type="radio" name="provider-{{ provider }}" class="model-radio mr-2 h-4 w-4 text-purple-600" value="{{ model_id }}" data-model-name="{{ model_info.name }}">
-                                        <span class="text-sm">{{ model_info.name }}</span>
-                                    </label>
-                                    {% else %}
-                                    <div class="flex items-center p-2 rounded border border-gray-200 bg-gray-50 opacity-50 cursor-not-allowed">
-                                        <input type="radio" class="mr-2 h-4 w-4" disabled>
-                                        <div>
-                                            <span class="text-sm text-gray-400">{{ model_info.name }}</span>
-                                            <span class="text-xs text-gray-400 ml-1">(No API Key)</span>
-                                        </div>
-                                    </div>
-                                    {% endif %}
-                                {% endfor %}
-                            </div>
-                        </div>
-                        {% endfor %}
+                    <div class="space-y-4" id="model-selection">
+                        <p id="loading-models">Loading models...</p>
                     </div>
 
                     {% set available_models = models.values() | selectattr('provider', 'in', api_keys_status.keys()) | list %}
@@ -166,8 +143,80 @@
     </main>
 
     <script>
+        // Fetch and render models on page load
+        async function fetchAndRenderModels() {
+            const loadingElement = document.getElementById('loading-models');
+            const modelSelectionElement = document.getElementById('model-selection');
+            const cachedModels = localStorage.getItem('availableModels');
+
+            if (cachedModels) {
+                renderModels(JSON.parse(cachedModels));
+                loadingElement.style.display = 'none';
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/available_models');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const models = await response.json();
+                localStorage.setItem('availableModels', JSON.stringify(models));
+                renderModels(models);
+            } catch (error) {
+                modelSelectionElement.innerHTML = '<p class="text-red-500">Failed to load models.</p>';
+                console.error('Error fetching models:', error);
+            } finally {
+                loadingElement.style.display = 'none';
+            }
+        }
+
+        function renderModels(models) {
+            const modelSelectionElement = document.getElementById('model-selection');
+            modelSelectionElement.innerHTML = '';
+
+            const providers = {};
+            for (const modelId in models) {
+                const model = models[modelId];
+                if (!providers[model.provider]) {
+                    providers[model.provider] = [];
+                }
+                providers[model.provider].push({ id: modelId, ...model });
+            }
+
+            for (const provider in providers) {
+                const providerGroup = document.createElement('div');
+                providerGroup.className = 'provider-group';
+
+                const title = document.createElement('h3');
+                title.className = 'text-sm font-semibold text-gray-600 uppercase mb-2 pb-1 border-b border-gray-200';
+                title.textContent = provider;
+                providerGroup.appendChild(title);
+
+                const select = document.createElement('select');
+                select.className = 'model-select w-full p-2 rounded border border-gray-200';
+                select.dataset.provider = provider;
+
+                const defaultOption = document.createElement('option');
+                defaultOption.value = '';
+                defaultOption.textContent = `Select a ${provider} model`;
+                select.appendChild(defaultOption);
+
+                providers[provider].forEach(model => {
+                    const option = document.createElement('option');
+                    option.value = model.id;
+                    option.textContent = model.name;
+                    select.appendChild(option);
+                });
+
+                providerGroup.appendChild(select);
+                modelSelectionElement.appendChild(providerGroup);
+            }
+        }
+
         // Load saved values on page load
         window.addEventListener('DOMContentLoaded', function() {
+            fetchAndRenderModels();
             // Load saved prompts
             const savedSystemPrompt = sessionStorage.getItem('comparisonSystemPrompt');
             const savedPrompt = sessionStorage.getItem('comparisonPrompt');
@@ -185,21 +234,22 @@
             if (savedModels) {
                 const modelIds = JSON.parse(savedModels);
                 modelIds.forEach(modelId => {
-                    const radio = document.querySelector(`.model-radio[value="${modelId}"]`);
-                    if (radio) {
-                        radio.checked = true;
+                    const select = document.querySelector(`.model-select option[value="${modelId}"]`);
+                    if (select) {
+                        select.parentElement.value = modelId;
                     }
                 });
             }
         });
 
         // Save selections when they change
-        document.querySelectorAll('.model-radio').forEach(radio => {
-            radio.addEventListener('change', function() {
-                const selectedModels = Array.from(document.querySelectorAll('.model-radio:checked'))
-                    .map(radio => radio.value);
+        document.getElementById('model-selection').addEventListener('change', function(event) {
+            if (event.target.classList.contains('model-select')) {
+                const selectedModels = Array.from(document.querySelectorAll('.model-select'))
+                    .map(select => select.value)
+                    .filter(value => value !== '');
                 sessionStorage.setItem('selectedModels', JSON.stringify(selectedModels));
-            });
+            }
         });
 
         // Save prompts as user types (with debouncing)
@@ -224,8 +274,9 @@
         function compareModels() {
             const systemPrompt = document.getElementById('systemPromptInput').value.trim();
             const prompt = document.getElementById('promptInput').value.trim();
-            const selectedModels = Array.from(document.querySelectorAll('.model-radio:checked'))
-                .map(radio => radio.value);
+            const selectedModels = Array.from(document.querySelectorAll('.model-select'))
+                .map(select => select.value)
+                .filter(value => value !== '');
 
             if (!prompt) {
                 alert('Please enter a user prompt');

@@ -83,3 +83,36 @@ class OpenAIProvider(LLMProvider):
             'content': response_data['choices'][0]['message']['content'],
             'usage': response_data.get('usage', {})
         }
+
+    def get_models(self) -> Dict[str, Any]:
+        """Get available models from OpenAI"""
+        if self.api_key == "dummy_key":
+            return {
+                "gpt-3.5-turbo": {
+                    "name": "gpt-3.5-turbo",
+                    "provider": "OpenAI",
+                    "endpoint": "chat/completions",
+                },
+                "gpt-4": {
+                    "name": "gpt-4",
+                    "provider": "OpenAI",
+                    "endpoint": "chat/completions",
+                },
+            }
+        try:
+            response = self.client.models.list()
+            models = response.data
+            # Filter for GPT models and format the output
+            return {
+                model.id: {
+                    "name": model.id,
+                    "provider": "OpenAI",
+                    "endpoint": "chat/completions",
+                }
+                for model in models
+                if model.id.startswith("gpt")
+            }
+        except (OpenAIError, APIError, APIConnectionError, RateLimitError, APITimeoutError) as e:
+            # Handle API errors gracefully
+            print(f"Error fetching OpenAI models: {e}")
+            return {}

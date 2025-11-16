@@ -30,3 +30,7 @@ class xAIProvider(LLMProvider):
             'content': response.content,
             'usage': {}
         }
+
+    def get_models(self) -> Dict[str, Any]:
+        """xAI API does not support fetching models"""
+        return {}

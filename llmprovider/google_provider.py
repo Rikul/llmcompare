@@ -27,3 +27,7 @@ class GoogleProvider(LLMProvider):
             'content': response.text,
             'usage': {}  # Google doesn't return usage in the same format
         }
+
+    def get_models(self) -> Dict[str, Any]:
+        """Google API does not support fetching models"""
+        return {}

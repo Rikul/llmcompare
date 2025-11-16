@@ -1,44 +1,37 @@
-import requests
-import json
+import unittest
 import os
+from app import app
+from unittest.mock import patch
 
-def test_model_endpoint():
-    # Set the base URL for the Flask app
-    base_url = "http://localhost:5000"
+class NewEndpointTestCase(unittest.TestCase):
+    def setUp(self):
+        self.app = app.test_client()
+        self.app.testing = True
 
-    # Check if the server is running
-    try:
-        response = requests.get(base_url)
-        assert response.status_code == 200, "Server is not running"
-    except requests.exceptions.ConnectionError:
-        assert False, "Could not connect to the server"
+    @patch('llmprovider.service.LLMService.get_available_models')
+    def test_get_available_models_success(self, mock_get_models):
+        """Test the /api/available_models endpoint with mocked data"""
+        mock_get_models.return_value = {
+            "gpt-3.5-turbo": {
+                "name": "gpt-3.5-turbo",
+                "provider": "OpenAI",
+                "endpoint": "chat/completions"
+            }
+        }
+        response = self.app.get('/api/available_models')
+        self.assertEqual(response.status_code, 200)
+        data = response.get_json()
+        self.assertIn('gpt-3.5-turbo', data)
+        self.assertEqual(data['gpt-3.5-turbo']['provider'], 'OpenAI')
 
-    # Get the list of available models
-    response = requests.get(f"{base_url}/api/models")
-    assert response.status_code == 200, "Could not get models"
-    models = response.json()
-    model_ids = list(models.keys())
+    @patch('llmprovider.service.LLMService.get_available_models')
+    def test_get_available_models_no_keys(self, mock_get_models):
+        """Test the /api/available_models endpoint with no API keys"""
+        mock_get_models.return_value = {}
+        response = self.app.get('/api/available_models')
+        self.assertEqual(response.status_code, 200)
+        data = response.get_json()
+        self.assertEqual(data, {})
 
-    # Test the /api/get_model_response endpoint
-    test_data = {
-        "prompt": "What is the capital of France?",
-        "model_id": model_ids[0]
-    }
-
-    response = requests.post(
-        f"{base_url}/api/get_model_response",
-        json=test_data,
-        headers={"Content-Type": "application/json"}
-    )
-
-    assert response.status_code == 200, f"Expected status code 200, but got {response.status_code}"
-
-    # Check that the response is a JSON object with the expected keys
-    response_data = response.json()
-    assert "model_name" in response_data, "Response missing 'model_name' key"
-    assert "response" in response_data, "Response missing 'response' key"
-
-    print("Test passed!")
-
-if __name__ == "__main__":
-    test_model_endpoint()
+if __name__ == '__main__':
+    unittest.main()
