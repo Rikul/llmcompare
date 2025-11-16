@@ -12,6 +12,9 @@ from .base import LLMProvider
 class xAIProvider(LLMProvider):
     """xAI (Grok) API implementation"""
 
+    def __init__(self, api_key: str, available_models: Dict[str, Any] = None):
+        super().__init__(api_key, available_models)
+
     def call_api(self, model_id: str, prompt: str, endpoint: str, system_prompt: str = None) -> Dict[str, Any]:
         client = Client(api_key=self.api_key)
 
@@ -32,5 +35,11 @@ class xAIProvider(LLMProvider):
         }
 
     def get_models(self) -> Dict[str, Any]:
-        """xAI API does not support fetching models"""
+        """Get available xAI models from config"""
+        if self.available_models:
+            return {
+                model_id: model_info
+                for model_id, model_info in self.available_models.items()
+                if model_info.get('provider') == 'xAI'
+            }
         return {}

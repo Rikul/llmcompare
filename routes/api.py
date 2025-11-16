@@ -6,7 +6,7 @@ from config import AVAILABLE_MODELS
 
 api_bp = Blueprint('api', __name__)
 
-llm_service = LLMService()
+llm_service = LLMService(AVAILABLE_MODELS)
 
 @api_bp.route('/api/models', methods=['GET'])
 def get_models():
