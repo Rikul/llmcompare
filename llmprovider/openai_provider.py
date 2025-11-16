@@ -103,14 +103,16 @@ class OpenAIProvider(LLMProvider):
             response = self.client.models.list()
             models = response.data
             # Filter for GPT models and format the output
+            # Map models that require the 'responses' endpoint
+            responses_models = {"gpt-4o", "o3-mini"}
             return {
                 model.id: {
                     "name": model.id,
                     "provider": "OpenAI",
-                    "endpoint": "chat/completions",
+                    "endpoint": "responses" if model.id in responses_models else "chat/completions",
                 }
                 for model in models
-                if model.id.startswith("gpt")
+                if model.id.startswith("gpt") or model.id.startswith("o3-")
             }
         except (OpenAIError, APIError, APIConnectionError, RateLimitError, APITimeoutError) as e:
             # Handle API errors gracefully
