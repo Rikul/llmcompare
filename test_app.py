@@ -122,17 +122,17 @@ class AppTester:
             os.getenv('GOOGLE_API_KEY')
         ])
         
-        # Select first two models
-        model_ids = list(models.keys())[:2]
+        # Select first model
+        model_id = list(models.keys())[0]
         
         test_data = {
             "prompt": "What is the capital of France?",
-            "models": model_ids
+            "model_id": model_id
         }
         
         try:
             response = requests.post(
-                f"{self.base_url}/api/compare",
+                f"{self.base_url}/api/get_model_response",
                 json=test_data,
                 headers={"Content-Type": "application/json"}
             )
@@ -147,18 +147,17 @@ class AppTester:
                 )
             else:
                 if response.status_code == 200:
-                    results = response.json()
+                    result = response.json()
                     self.print_result(
                         "Comparison Endpoint",
                         True,
-                        f"Got responses from {len(results)} models"
+                        f"Got response from {result['model_name']}"
                     )
                     
                     # Show response details
                     print("\n   Response details:")
-                    for model_id, result in results.items():
-                        status_icon = "✓" if result['status'] == 'success' else "✗"
-                        print(f"   {status_icon} {result['model_name']}: {result['status']}")
+                    status_icon = "✓" if result['status'] == 'success' else "✗"
+                    print(f"   {status_icon} {result['model_name']}: {result['status']}")
                 else:
                     self.print_result(
                         "Comparison Endpoint",
@@ -173,12 +172,12 @@ class AppTester:
         # Test with empty prompt
         test_data = {
             "prompt": "",
-            "models": ["gpt-3.5-turbo"]
+            "model_id": "gpt-3.5-turbo"
         }
         
         try:
             response = requests.post(
-                f"{self.base_url}/api/compare",
+                f"{self.base_url}/api/get_model_response",
                 json=test_data,
                 headers={"Content-Type": "application/json"}
             )
@@ -195,12 +194,12 @@ class AppTester:
         # Test with no models
         test_data = {
             "prompt": "Test prompt",
-            "models": []
+            "model_id": None
         }
         
         try:
             response = requests.post(
-                f"{self.base_url}/api/compare",
+                f"{self.base_url}/api/get_model_response",
                 json=test_data,
                 headers={"Content-Type": "application/json"}
             )
