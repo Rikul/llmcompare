@@ -85,8 +85,30 @@ class OpenAIProvider(LLMProvider):
         }
 
     def get_models(self) -> Dict[str, Any]:
-        """Get available models from OpenAI"""
-        # First, try to return models from the config for this provider
+        """Get available models from OpenAI API, with config as fallback"""
+        # Try API call first if we have a real API key
+        if self.api_key != "dummy_key":
+            try:
+                response = self.client.models.list()
+                models = response.data
+                # Filter for GPT models and format the output
+                # Map models that require the 'responses' endpoint
+                responses_models = {"gpt-4o", "o3-mini"}
+                return {
+                    model.id: {
+                        "name": model.id,
+                        "provider": "OpenAI",
+                        "endpoint": "responses" if model.id in responses_models else "chat/completions",
+                        "api_key_env": "OPENAI_API_KEY"
+                    }
+                    for model in models
+                    if model.id.startswith("gpt") or model.id.startswith("o3-")
+                }
+            except (OpenAIError, APIError, APIConnectionError, RateLimitError, APITimeoutError) as e:
+                # Handle API errors gracefully - fall through to config fallback
+                print(f"Error fetching OpenAI models from API: {e}")
+        
+        # Fallback to config models if available
         if self.available_models:
             openai_models = {
                 model_id: model_info
@@ -96,42 +118,18 @@ class OpenAIProvider(LLMProvider):
             if openai_models:
                 return openai_models
         
-        # Fallback to API call if config is not available
-        if self.api_key == "dummy_key":
-            return {
-                "gpt-3.5-turbo": {
-                    "name": "gpt-3.5-turbo",
-                    "provider": "OpenAI",
-                    "endpoint": "chat/completions",
-                },
-                "gpt-4": {
-                    "name": "gpt-4",
-                    "provider": "OpenAI",
-                    "endpoint": "chat/completions",
-                },
-            }
-        try:
-            response = self.client.models.list()
-            models = response.data
-            # Filter for GPT models and format the output
-            # Map models that require the 'responses' endpoint
-            responses_models = {"gpt-4o", "o3-mini"}
-            return {
-                model.id: {
-                    "name": model.id,
-                    "provider": "OpenAI",
-                    "endpoint": "responses" if model.id in responses_models else "chat/completions",
-                }
-                for model in models
-                if model.id.startswith("gpt") or model.id.startswith("o3-")
-            }
-        except (OpenAIError, APIError, APIConnectionError, RateLimitError, APITimeoutError) as e:
-            # Handle API errors gracefully - return config models if available
-            print(f"Error fetching OpenAI models from API: {e}")
-            if self.available_models:
-                return {
-                    model_id: model_info
-                    for model_id, model_info in self.available_models.items()
-                    if model_info.get('provider') == 'OpenAI'
-                }
-            return {}
+        # Last resort: return minimal hardcoded models
+        return {
+            "gpt-3.5-turbo": {
+                "name": "gpt-3.5-turbo",
+                "provider": "OpenAI",
+                "endpoint": "chat/completions",
+                "api_key_env": "OPENAI_API_KEY"
+            },
+            "gpt-4": {
+                "name": "gpt-4",
+                "provider": "OpenAI",
+                "endpoint": "chat/completions",
+                "api_key_env": "OPENAI_API_KEY"
+            },
+        }

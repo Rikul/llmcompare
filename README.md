@@ -57,9 +57,23 @@ If no API keys are configured, you'll see a helpful error page with:
 - Step-by-step configuration instructions
 - Direct links to get API keys from each provider
 
+## Model Discovery
+
+The application automatically discovers available models from each provider using their SDK APIs:
+
+- **OpenAI**: Fetches models via `client.models.list()` and filters for GPT/o3 models
+- **Anthropic**: Fetches models via `client.models.list()` 
+- **Google**: Fetches models via `genai.list_models()` and filters for models supporting content generation
+- **xAI**: Fetches models via `client.models.list_language_models()`
+
+Models defined in `config.py` serve as a fallback when SDK calls fail or API keys are invalid. This ensures:
+- Users automatically see new models as providers release them
+- Service remains available even if provider APIs are temporarily unavailable
+- Curated model lists can be maintained in config when needed
+
 ## Adding New Models
 
-To add a new model, update the `AVAILABLE_MODELS` dictionary in `app.py`:
+The application will automatically discover new models from configured providers. However, you can also manually add models to `config.py` as a fallback or to add models from new providers:
 
 ```python
 'model-id': {
@@ -70,12 +84,17 @@ To add a new model, update the `AVAILABLE_MODELS` dictionary in `app.py`:
 }
 ```
 
-Then create a new provider class if needed:
+To add a completely new provider, create a provider class:
 
 ```python
 class NewProvider(LLMProvider):
     def call_api(self, model_id: str, prompt: str, endpoint: str) -> Dict[str, Any]:
         # Implement API call logic
+        pass
+    
+    def get_models(self) -> Dict[str, Any]:
+        # Implement model listing via SDK
+        # Fall back to config on errors
         pass
 ```
 
@@ -84,6 +103,7 @@ class NewProvider(LLMProvider):
 - **OpenAI**: https://platform.openai.com/api-keys
 - **Anthropic**: https://console.anthropic.com/settings/keys
 - **Google AI**: https://makersuite.google.com/app/apikey
+- **xAI**: https://x.ai/api
 
 ## Technologies Used
 
