@@ -49,28 +49,8 @@ class AnthropicProvider(LLMProvider):
         }
 
     def get_models(self) -> Dict[str, Any]:
-        """Get available Anthropic models from API, with config as fallback"""
-        # Try API call first if we have a real API key
-        if self.api_key != "dummy_key":
-            try:
-                client = Anthropic(api_key=self.api_key)
-                models_response = client.models.list()
-                
-                # Filter and format the models
-                return {
-                    model.id: {
-                        "name": model.display_name if hasattr(model, 'display_name') else model.id,
-                        "provider": "Anthropic",
-                        "endpoint": "https://api.anthropic.com/v1/messages",
-                        "api_key_env": "ANTHROPIC_API_KEY"
-                    }
-                    for model in models_response.data
-                }
-            except Exception as e:
-                # Handle API errors gracefully - fall through to config fallback
-                print(f"Error fetching Anthropic models from API: {e}")
+        """Get available Anthropic models"""
         
-        # Fallback to config models if available
         if self.available_models:
             anthropic_models = {
                 model_id: model_info
