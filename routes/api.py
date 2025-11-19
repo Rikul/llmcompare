@@ -2,16 +2,16 @@ from flask import Blueprint, request, jsonify
 from datetime import datetime
 import os
 from llmprovider import LLMService
-from config import AVAILABLE_MODELS
 
 api_bp = Blueprint('api', __name__)
 
-llm_service = LLMService(AVAILABLE_MODELS)
+llm_service = LLMService()
 
 @api_bp.route('/api/models', methods=['GET'])
 def get_models():
-    """Get available models"""
-    return jsonify(AVAILABLE_MODELS)
+    """Get all available models from all providers"""
+    models = llm_service.get_available_models()
+    return jsonify(models)
 
 
 @api_bp.route('/api/available_models', methods=['GET'])
@@ -60,10 +60,13 @@ def get_model_response():
     if not api_keys_configured:
         return jsonify({'error': 'No API keys configured. Please add API keys to use this service.'}), 503
 
-    if model_id not in AVAILABLE_MODELS:
+    # Get all available models to validate and get model info
+    all_models = llm_service.get_available_models()
+    
+    if model_id not in all_models:
         return jsonify({'error': 'Invalid model selected.'}), 400
 
-    model_info = AVAILABLE_MODELS[model_id]
+    model_info = all_models[model_id]
 
     # Real API call with system prompt
     response = llm_service.call_model(model_id, prompt, model_info, system_prompt if system_prompt else None)
@@ -74,8 +77,9 @@ def get_model_response():
 @api_bp.route('/health', methods=['GET'])
 def health_check():
     """Health check endpoint"""
+    all_models = llm_service.get_available_models()
     return jsonify({
         'status': 'healthy',
         'timestamp': datetime.now().isoformat(),
-        'models_available': len(AVAILABLE_MODELS)
+        'models_available': len(all_models)
     })

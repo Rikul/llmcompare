@@ -11,8 +11,8 @@ from .base import LLMProvider
 class GoogleProvider(LLMProvider):
     """Google Gemini API implementation"""
 
-    def __init__(self, api_key: str, available_models: Dict[str, Any] = None):
-        super().__init__(api_key, available_models)
+    def __init__(self, api_key: str):
+        super().__init__(api_key)
 
     def call_api(self, model_id: str, prompt: str, endpoint: str, system_prompt: str = None) -> Dict[str, Any]:
         genai.configure(api_key=self.api_key)
@@ -32,16 +32,32 @@ class GoogleProvider(LLMProvider):
         }
 
     def get_models(self) -> Dict[str, Any]:
-        """Get available Google model"""
-        
-        if self.available_models:
-            google_models = {
-                model_id: model_info
-                for model_id, model_info in self.available_models.items()
-                if model_info.get('provider') == 'Google'
+        """Get available Google models"""
+        # Define Google Gemini models directly
+        google_models = {
+            'gemini-2.0-flash-exp': {
+                'name': 'Gemini 2.0 Flash (Experimental)',
+                'endpoint': 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent',
+                'api_key_env': 'GEMINI_API_KEY',
+                'provider': 'Google'
+            },
+            'gemini-1.5-pro': {
+                'name': 'Gemini 1.5 Pro',
+                'endpoint': 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent',
+                'api_key_env': 'GEMINI_API_KEY',
+                'provider': 'Google'
+            },
+            'gemini-1.5-flash': {
+                'name': 'Gemini 1.5 Flash',
+                'endpoint': 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent',
+                'api_key_env': 'GEMINI_API_KEY',
+                'provider': 'Google'
+            },
+            'gemini-1.0-pro': {
+                'name': 'Gemini 1.0 Pro',
+                'endpoint': 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.0-pro:generateContent',
+                'api_key_env': 'GEMINI_API_KEY',
+                'provider': 'Google'
             }
-            if google_models:
-                return google_models
-        
-        # No models available
-        return {}
+        }
+        return google_models

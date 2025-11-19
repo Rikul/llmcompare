@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template
 import os
-from config import AVAILABLE_MODELS
+from llmprovider import LLMService
 
 main_bp = Blueprint('main', __name__)
 
@@ -19,7 +19,11 @@ def index():
         # No API keys configured, show error template
         return render_template('no_api_keys.html', api_keys_status=api_keys_status)
 
-    return render_template('index.html', models=AVAILABLE_MODELS, api_keys_status=api_keys_status)
+    # Get all available models from the service
+    llm_service = LLMService()
+    models = llm_service.get_available_models()
+    
+    return render_template('index.html', models=models, api_keys_status=api_keys_status)
 
 
 @main_bp.route('/results')

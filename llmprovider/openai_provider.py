@@ -18,8 +18,8 @@ from .base import LLMProvider
 class OpenAIProvider(LLMProvider):
     """OpenAI API implementation"""
 
-    def __init__(self, api_key: str, available_models: Dict[str, Any] = None):
-        super().__init__(api_key, available_models)
+    def __init__(self, api_key: str):
+        super().__init__(api_key)
         self.client = OpenAI(api_key=api_key)
 
     def call_api(self, model_id: str, prompt: str, endpoint: str, system_prompt: str = None) -> Dict[str, Any]:
@@ -86,15 +86,43 @@ class OpenAIProvider(LLMProvider):
 
     def get_models(self) -> Dict[str, Any]:
         """Get available models from OpenAI"""
-    
-        if self.available_models:
-            openai_models = {
-                model_id: model_info
-                for model_id, model_info in self.available_models.items()
-                if model_info.get('provider') == 'OpenAI'
+        # Define OpenAI models directly
+        openai_models = {
+            'gpt-4o': {
+                'name': 'GPT-4o',
+                'endpoint': 'https://api.openai.com/v1/chat/completions',
+                'api_key_env': 'OPENAI_API_KEY',
+                'provider': 'OpenAI'
+            },
+            'gpt-4o-mini': {
+                'name': 'GPT-4o Mini',
+                'endpoint': 'https://api.openai.com/v1/chat/completions',
+                'api_key_env': 'OPENAI_API_KEY',
+                'provider': 'OpenAI'
+            },
+            'gpt-4-turbo': {
+                'name': 'GPT-4 Turbo',
+                'endpoint': 'https://api.openai.com/v1/chat/completions',
+                'api_key_env': 'OPENAI_API_KEY',
+                'provider': 'OpenAI'
+            },
+            'gpt-3.5-turbo': {
+                'name': 'GPT-3.5 Turbo',
+                'endpoint': 'https://api.openai.com/v1/chat/completions',
+                'api_key_env': 'OPENAI_API_KEY',
+                'provider': 'OpenAI'
+            },
+            'o1': {
+                'name': 'o1',
+                'endpoint': 'https://api.openai.com/v1/chat/completions',
+                'api_key_env': 'OPENAI_API_KEY',
+                'provider': 'OpenAI'
+            },
+            'o1-mini': {
+                'name': 'o1 Mini',
+                'endpoint': 'https://api.openai.com/v1/chat/completions',
+                'api_key_env': 'OPENAI_API_KEY',
+                'provider': 'OpenAI'
             }
-            if openai_models:
-                return openai_models
-
-        # No models available
-        return {}
+        }
+        return openai_models

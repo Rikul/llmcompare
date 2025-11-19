@@ -12,8 +12,8 @@ from .base import LLMProvider
 class xAIProvider(LLMProvider):
     """xAI (Grok) API implementation"""
 
-    def __init__(self, api_key: str, available_models: Dict[str, Any] = None):
-        super().__init__(api_key, available_models)
+    def __init__(self, api_key: str):
+        super().__init__(api_key)
 
     def call_api(self, model_id: str, prompt: str, endpoint: str, system_prompt: str = None) -> Dict[str, Any]:
         client = Client(api_key=self.api_key)
@@ -36,15 +36,19 @@ class xAIProvider(LLMProvider):
 
     def get_models(self) -> Dict[str, Any]:
         """Get available xAI models"""
-
-        if self.available_models:
-            xai_models = {
-                model_id: model_info
-                for model_id, model_info in self.available_models.items()
-                if model_info.get('provider') == 'xAI'
+        # Define xAI (Grok) models directly
+        xai_models = {
+            'grok-beta': {
+                'name': 'Grok Beta',
+                'endpoint': 'https://api.x.ai/v1/chat/completions',
+                'api_key_env': 'XAI_API_KEY',
+                'provider': 'xAI'
+            },
+            'grok-vision-beta': {
+                'name': 'Grok Vision Beta',
+                'endpoint': 'https://api.x.ai/v1/chat/completions',
+                'api_key_env': 'XAI_API_KEY',
+                'provider': 'xAI'
             }
-            if xai_models:
-                return xai_models
-        
-        # No models available
-        return {}
+        }
+        return xai_models
