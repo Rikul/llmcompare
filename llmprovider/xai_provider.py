@@ -10,8 +10,9 @@ To update model versions when new models are released:
 3. Check xAI API documentation for new models
 
 Current models (as of Nov 2024):
-- grok-beta: Grok beta model (text only)
-- grok-vision-beta: Grok with vision capabilities
+- grok-4: Grok 4 (latest flagship model)
+- grok-3: Grok 3
+- grok-3-mini: Grok 3 Mini (smaller, faster variant)
 """
 
 from typing import Dict, Any
@@ -50,14 +51,20 @@ class xAIProvider(LLMProvider):
         """Get available xAI models"""
         # Define xAI (Grok) models directly
         xai_models = {
-            'grok-beta': {
-                'name': 'Grok Beta',
+            'grok-4': {
+                'name': 'Grok 4',
                 'endpoint': 'https://api.x.ai/v1/chat/completions',
                 'api_key_env': 'XAI_API_KEY',
                 'provider': 'xAI'
             },
-            'grok-vision-beta': {
-                'name': 'Grok Vision Beta',
+            'grok-3': {
+                'name': 'Grok 3',
+                'endpoint': 'https://api.x.ai/v1/chat/completions',
+                'api_key_env': 'XAI_API_KEY',
+                'provider': 'xAI'
+            },
+            'grok-3-mini': {
+                'name': 'Grok 3 Mini',
                 'endpoint': 'https://api.x.ai/v1/chat/completions',
                 'api_key_env': 'XAI_API_KEY',
                 'provider': 'xAI'
