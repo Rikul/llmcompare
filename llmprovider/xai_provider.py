@@ -1,5 +1,18 @@
 """
 xAI (Grok) API Provider implementation
+
+Model Version Information:
+-------------------------
+This file contains the model version strings for xAI Grok models.
+To update model versions when new models are released:
+1. Edit the get_models() method below
+2. Update model IDs to match xAI's model naming
+3. Check xAI API documentation for new models
+
+Current models (as of Nov 2024):
+- grok-4: Grok 4 (latest flagship model)
+- grok-3: Grok 3
+- grok-3-mini: Grok 3 Mini (smaller, faster variant)
 """
 
 from typing import Dict, Any
@@ -12,8 +25,8 @@ from .base import LLMProvider
 class xAIProvider(LLMProvider):
     """xAI (Grok) API implementation"""
 
-    def __init__(self, api_key: str, available_models: Dict[str, Any] = None):
-        super().__init__(api_key, available_models)
+    def __init__(self, api_key: str):
+        super().__init__(api_key)
 
     def call_api(self, model_id: str, prompt: str, endpoint: str, system_prompt: str = None) -> Dict[str, Any]:
         client = Client(api_key=self.api_key)
@@ -36,15 +49,25 @@ class xAIProvider(LLMProvider):
 
     def get_models(self) -> Dict[str, Any]:
         """Get available xAI models"""
-
-        if self.available_models:
-            xai_models = {
-                model_id: model_info
-                for model_id, model_info in self.available_models.items()
-                if model_info.get('provider') == 'xAI'
+        # Define xAI (Grok) models directly
+        xai_models = {
+            'grok-4': {
+                'name': 'Grok 4',
+                'endpoint': 'https://api.x.ai/v1/chat/completions',
+                'api_key_env': 'XAI_API_KEY',
+                'provider': 'xAI'
+            },
+            'grok-3': {
+                'name': 'Grok 3',
+                'endpoint': 'https://api.x.ai/v1/chat/completions',
+                'api_key_env': 'XAI_API_KEY',
+                'provider': 'xAI'
+            },
+            'grok-3-mini': {
+                'name': 'Grok 3 Mini',
+                'endpoint': 'https://api.x.ai/v1/chat/completions',
+                'api_key_env': 'XAI_API_KEY',
+                'provider': 'xAI'
             }
-            if xai_models:
-                return xai_models
-        
-        # No models available
-        return {}
+        }
+        return xai_models

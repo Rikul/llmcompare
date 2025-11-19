@@ -1,5 +1,20 @@
 """
 Anthropic API Provider implementation
+
+Model Version Information:
+-------------------------
+This file contains the model version strings for Anthropic Claude models.
+To update model versions when new models are released:
+1. Edit the get_models() method below
+2. Update model IDs with new version dates
+3. Verify model names match Anthropic's naming conventions
+
+Current models (as of Nov 2024):
+- claude-3-5-sonnet-20241022: Claude 3.5 Sonnet (most capable)
+- claude-3-5-haiku-20241022: Claude 3.5 Haiku (fastest)
+- claude-3-opus-20240229: Claude 3 Opus (legacy powerful model)
+- claude-3-sonnet-20240229: Claude 3 Sonnet (legacy balanced model)
+- claude-3-haiku-20240307: Claude 3 Haiku (legacy fast model)
 """
 
 from typing import Dict, Any
@@ -11,8 +26,8 @@ from .base import LLMProvider
 class AnthropicProvider(LLMProvider):
     """Anthropic API implementation"""
     
-    def __init__(self, api_key: str, available_models: Dict[str, Any] = None):
-        super().__init__(api_key, available_models)
+    def __init__(self, api_key: str):
+        super().__init__(api_key)
     
     def call_api(self, model_id: str, prompt: str, endpoint: str, system_prompt: str = None) -> Dict[str, Any]:
      
@@ -50,15 +65,37 @@ class AnthropicProvider(LLMProvider):
 
     def get_models(self) -> Dict[str, Any]:
         """Get available Anthropic models"""
-        
-        if self.available_models:
-            anthropic_models = {
-                model_id: model_info
-                for model_id, model_info in self.available_models.items()
-                if model_info.get('provider') == 'Anthropic'
+        # Define Anthropic models directly
+        anthropic_models = {
+            'claude-3-5-sonnet-20241022': {
+                'name': 'Claude 3.5 Sonnet',
+                'endpoint': 'https://api.anthropic.com/v1/messages',
+                'api_key_env': 'ANTHROPIC_API_KEY',
+                'provider': 'Anthropic'
+            },
+            'claude-3-5-haiku-20241022': {
+                'name': 'Claude 3.5 Haiku',
+                'endpoint': 'https://api.anthropic.com/v1/messages',
+                'api_key_env': 'ANTHROPIC_API_KEY',
+                'provider': 'Anthropic'
+            },
+            'claude-3-opus-20240229': {
+                'name': 'Claude 3 Opus',
+                'endpoint': 'https://api.anthropic.com/v1/messages',
+                'api_key_env': 'ANTHROPIC_API_KEY',
+                'provider': 'Anthropic'
+            },
+            'claude-3-sonnet-20240229': {
+                'name': 'Claude 3 Sonnet',
+                'endpoint': 'https://api.anthropic.com/v1/messages',
+                'api_key_env': 'ANTHROPIC_API_KEY',
+                'provider': 'Anthropic'
+            },
+            'claude-3-haiku-20240307': {
+                'name': 'Claude 3 Haiku',
+                'endpoint': 'https://api.anthropic.com/v1/messages',
+                'api_key_env': 'ANTHROPIC_API_KEY',
+                'provider': 'Anthropic'
             }
-            if anthropic_models:
-                return anthropic_models
-        
-        # No models available
-        return {}
+        }
+        return anthropic_models
