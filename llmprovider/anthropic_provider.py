@@ -1,5 +1,20 @@
 """
 Anthropic API Provider implementation
+
+Model Version Information:
+-------------------------
+This file contains the model version strings for Anthropic Claude models.
+To update model versions when new models are released:
+1. Edit the get_models() method below
+2. Update model IDs with new version dates
+3. Verify model names match Anthropic's naming conventions
+
+Current models (as of Nov 2024):
+- claude-3-5-sonnet-20241022: Claude 3.5 Sonnet (most capable)
+- claude-3-5-haiku-20241022: Claude 3.5 Haiku (fastest)
+- claude-3-opus-20240229: Claude 3 Opus (legacy powerful model)
+- claude-3-sonnet-20240229: Claude 3 Sonnet (legacy balanced model)
+- claude-3-haiku-20240307: Claude 3 Haiku (legacy fast model)
 """
 
 from typing import Dict, Any

@@ -1,5 +1,17 @@
 """
 xAI (Grok) API Provider implementation
+
+Model Version Information:
+-------------------------
+This file contains the model version strings for xAI Grok models.
+To update model versions when new models are released:
+1. Edit the get_models() method below
+2. Update model IDs to match xAI's model naming
+3. Check xAI API documentation for new models
+
+Current models (as of Nov 2024):
+- grok-beta: Grok beta model (text only)
+- grok-vision-beta: Grok with vision capabilities
 """
 
 from typing import Dict, Any

@@ -1,5 +1,19 @@
 """
 Google Gemini API Provider implementation
+
+Model Version Information:
+-------------------------
+This file contains the model version strings for Google Gemini models.
+To update model versions when new models are released:
+1. Edit the get_models() method below
+2. Update model IDs and endpoints
+3. Check Google AI documentation for new model versions
+
+Current models (as of Nov 2024):
+- gemini-2.0-flash-exp: Gemini 2.0 Flash (experimental, latest)
+- gemini-1.5-pro: Gemini 1.5 Pro (most capable stable model)
+- gemini-1.5-flash: Gemini 1.5 Flash (fast and efficient)
+- gemini-1.0-pro: Gemini 1.0 Pro (stable baseline model)
 """
 
 from typing import Dict, Any
