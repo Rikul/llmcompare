@@ -1,19 +1,4 @@
-"""
-xAI (Grok) API Provider implementation
 
-Model Version Information:
--------------------------
-This file contains the model version strings for xAI Grok models.
-To update model versions when new models are released:
-1. Edit the get_models() method below
-2. Update model IDs to match xAI's model naming
-3. Check xAI API documentation for new models
-
-Current models (as of Nov 2024):
-- grok-4: Grok 4 (latest flagship model)
-- grok-3: Grok 3
-- grok-3-mini: Grok 3 Mini (smaller, faster variant)
-"""
 
 from typing import Dict, Any
 from xai_sdk import Client

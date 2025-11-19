@@ -1,22 +1,3 @@
-"""
-OpenAI API Provider implementation
-
-Model Version Information:
--------------------------
-This file contains the model version strings for OpenAI models.
-To update model versions when new models are released:
-1. Edit the get_models() method below
-2. Update model IDs and names as needed
-3. Verify endpoints are correct (chat/completions for most models)
-
-Current models (as of Nov 2024):
-- gpt-4o: Latest GPT-4 Omni model
-- gpt-4o-mini: Smaller, faster GPT-4 Omni variant
-- gpt-4-turbo: GPT-4 Turbo with improved performance
-- gpt-3.5-turbo: Cost-effective GPT-3.5 model
-- o1: OpenAI's reasoning model
-- o1-mini: Smaller reasoning model variant
-"""
 
 from typing import Dict, Any
 from openai import (
