@@ -63,39 +63,75 @@ class AnthropicProvider(LLMProvider):
             }
         }
 
-    def get_models(self) -> Dict[str, Any]:
-        """Get available Anthropic models"""
-        # Define Anthropic models directly
-        anthropic_models = {
-            'claude-3-5-sonnet-20241022': {
-                'name': 'Claude 3.5 Sonnet',
-                'endpoint': 'https://api.anthropic.com/v1/messages',
-                'api_key_env': 'ANTHROPIC_API_KEY',
-                'provider': 'Anthropic'
-            },
-            'claude-3-5-haiku-20241022': {
-                'name': 'Claude 3.5 Haiku',
-                'endpoint': 'https://api.anthropic.com/v1/messages',
-                'api_key_env': 'ANTHROPIC_API_KEY',
-                'provider': 'Anthropic'
-            },
-            'claude-3-opus-20240229': {
-                'name': 'Claude 3 Opus',
-                'endpoint': 'https://api.anthropic.com/v1/messages',
-                'api_key_env': 'ANTHROPIC_API_KEY',
-                'provider': 'Anthropic'
-            },
-            'claude-3-sonnet-20240229': {
-                'name': 'Claude 3 Sonnet',
-                'endpoint': 'https://api.anthropic.com/v1/messages',
-                'api_key_env': 'ANTHROPIC_API_KEY',
-                'provider': 'Anthropic'
-            },
-            'claude-3-haiku-20240307': {
-                'name': 'Claude 3 Haiku',
-                'endpoint': 'https://api.anthropic.com/v1/messages',
-                'api_key_env': 'ANTHROPIC_API_KEY',
-                'provider': 'Anthropic'
+        def get_models(self) -> Dict[str, Any]:
+            """Get available Anthropic models"""
+            # Define Anthropic models directly
+            anthropic_models = {
+                'claude-opus-4-20250514': {
+                    'name': 'Claude Opus 4 (May 2025)',
+                    'endpoint': 'https://api.anthropic.com/v1/messages',
+                    'api_key_env': 'ANTHROPIC_API_KEY',
+                    'provider': 'Anthropic'
+                },
+                'claude-opus-4-20241229': {
+                    'name': 'Claude Opus 4 (Dec 2024)',
+                    'endpoint': 'https://api.anthropic.com/v1/messages',
+                    'api_key_env': 'ANTHROPIC_API_KEY',
+                    'provider': 'Anthropic'
+                },
+                'claude-sonnet-4-20250514': {
+                    'name': 'Claude Sonnet 4 (May 2025)',
+                    'endpoint': 'https://api.anthropic.com/v1/messages',
+                    'api_key_env': 'ANTHROPIC_API_KEY',
+                    'provider': 'Anthropic'
+                },
+                'claude-sonnet-4-20241022': {
+                    'name': 'Claude Sonnet 4 (Oct 2024)',
+                    'endpoint': 'https://api.anthropic.com/v1/messages',
+                    'api_key_env': 'ANTHROPIC_API_KEY',
+                    'provider': 'Anthropic'
+                },
+                'claude-3-7-sonnet-20250219': {
+                    'name': 'Claude 3.7 Sonnet',
+                    'endpoint': 'https://api.anthropic.com/v1/messages',
+                    'api_key_env': 'ANTHROPIC_API_KEY',
+                    'provider': 'Anthropic'
+                },
+                'claude-3-5-sonnet-20241022': {
+                    'name': 'Claude 3.5 Sonnet (Oct 2024)',
+                    'endpoint': 'https://api.anthropic.com/v1/messages',
+                    'api_key_env': 'ANTHROPIC_API_KEY',
+                    'provider': 'Anthropic'
+                },
+                'claude-3-5-sonnet-20240620': {
+                    'name': 'Claude 3.5 Sonnet (Jun 2024)',
+                    'endpoint': 'https://api.anthropic.com/v1/messages',
+                    'api_key_env': 'ANTHROPIC_API_KEY',
+                    'provider': 'Anthropic'
+                },
+                'claude-3-5-haiku-20241022': {
+                    'name': 'Claude 3.5 Haiku',
+                    'endpoint': 'https://api.anthropic.com/v1/messages',
+                    'api_key_env': 'ANTHROPIC_API_KEY',
+                    'provider': 'Anthropic'
+                },
+                'claude-3-opus-20240229': {
+                    'name': 'Claude 3 Opus',
+                    'endpoint': 'https://api.anthropic.com/v1/messages',
+                    'api_key_env': 'ANTHROPIC_API_KEY',
+                    'provider': 'Anthropic'
+                },
+                'claude-3-sonnet-20240229': {
+                    'name': 'Claude 3 Sonnet',
+                    'endpoint': 'https://api.anthropic.com/v1/messages',
+                    'api_key_env': 'ANTHROPIC_API_KEY',
+                    'provider': 'Anthropic'
+                },
+                'claude-3-haiku-20240307': {
+                    'name': 'Claude 3 Haiku',
+                    'endpoint': 'https://api.anthropic.com/v1/messages',
+                    'api_key_env': 'ANTHROPIC_API_KEY',
+                    'provider': 'Anthropic'
+                }
             }
-        }
-        return anthropic_models
+            return anthropic_models

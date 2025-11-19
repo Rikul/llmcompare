@@ -49,27 +49,21 @@ class GoogleProvider(LLMProvider):
         """Get available Google models"""
         # Define Google Gemini models directly
         google_models = {
-            'gemini-2.0-flash-exp': {
-                'name': 'Gemini 2.0 Flash (Experimental)',
-                'endpoint': 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent',
+            'gemini-2.5-pro': {
+                'name': 'Gemini 2.5 Pro',
+                'endpoint': 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent',
                 'api_key_env': 'GEMINI_API_KEY',
                 'provider': 'Google'
             },
-            'gemini-1.5-pro': {
-                'name': 'Gemini 1.5 Pro',
-                'endpoint': 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent',
+            'gemini-2.5-flash': {
+                'name': 'Gemini 2.5 Flash',
+                'endpoint': 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent',
                 'api_key_env': 'GEMINI_API_KEY',
                 'provider': 'Google'
             },
-            'gemini-1.5-flash': {
-                'name': 'Gemini 1.5 Flash',
-                'endpoint': 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent',
-                'api_key_env': 'GEMINI_API_KEY',
-                'provider': 'Google'
-            },
-            'gemini-1.0-pro': {
-                'name': 'Gemini 1.0 Pro',
-                'endpoint': 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.0-pro:generateContent',
+            'gemini-3-pro-preview': {
+                'name': 'Gemini 3 Pro (Preview)',
+                'endpoint': 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3-pro-preview:generateContent',
                 'api_key_env': 'GEMINI_API_KEY',
                 'provider': 'Google'
             }

@@ -104,6 +104,18 @@ class OpenAIProvider(LLMProvider):
         """Get available models from OpenAI"""
         # Define OpenAI models directly
         openai_models = {
+            'gpt-3.5-turbo': {
+                'name': 'GPT-3.5 Turbo',
+                'endpoint': 'https://api.openai.com/v1/chat/completions',
+                'api_key_env': 'OPENAI_API_KEY',
+                'provider': 'OpenAI'
+            },
+            'gpt-3.5-turbo-16k': {
+                'name': 'GPT-3.5 Turbo 16K',
+                'endpoint': 'https://api.openai.com/v1/chat/completions',
+                'api_key_env': 'OPENAI_API_KEY',
+                'provider': 'OpenAI'
+            },
             'gpt-4o': {
                 'name': 'GPT-4o',
                 'endpoint': 'https://api.openai.com/v1/chat/completions',
@@ -116,14 +128,32 @@ class OpenAIProvider(LLMProvider):
                 'api_key_env': 'OPENAI_API_KEY',
                 'provider': 'OpenAI'
             },
-            'gpt-4-turbo': {
-                'name': 'GPT-4 Turbo',
+            'gpt-4.1': {
+                'name': 'GPT-4.1',
                 'endpoint': 'https://api.openai.com/v1/chat/completions',
                 'api_key_env': 'OPENAI_API_KEY',
                 'provider': 'OpenAI'
             },
-            'gpt-3.5-turbo': {
-                'name': 'GPT-3.5 Turbo',
+            'gpt-4.1-mini': {
+                'name': 'GPT-4.1 Mini',
+                'endpoint': 'https://api.openai.com/v1/chat/completions',
+                'api_key_env': 'OPENAI_API_KEY',
+                'provider': 'OpenAI'
+            },
+            'gpt-4.1-nano': {
+                'name': 'GPT-4.1 Nano',
+                'endpoint': 'https://api.openai.com/v1/chat/completions',
+                'api_key_env': 'OPENAI_API_KEY',
+                'provider': 'OpenAI'
+            },
+            'gpt-4': {
+                'name': 'GPT-4',
+                'endpoint': 'https://api.openai.com/v1/chat/completions',
+                'api_key_env': 'OPENAI_API_KEY',
+                'provider': 'OpenAI'
+            },
+            'gpt-4-32k': {
+                'name': 'GPT-4 32K',
                 'endpoint': 'https://api.openai.com/v1/chat/completions',
                 'api_key_env': 'OPENAI_API_KEY',
                 'provider': 'OpenAI'
@@ -134,8 +164,38 @@ class OpenAIProvider(LLMProvider):
                 'api_key_env': 'OPENAI_API_KEY',
                 'provider': 'OpenAI'
             },
-            'o1-mini': {
-                'name': 'o1 Mini',
+            'o3': {
+                'name': 'o3',
+                'endpoint': 'https://api.openai.com/v1/chat/completions',
+                'api_key_env': 'OPENAI_API_KEY',
+                'provider': 'OpenAI'
+            },
+            'o3-mini': {
+                'name': 'o3 Mini',
+                'endpoint': 'https://api.openai.com/v1/chat/completions',
+                'api_key_env': 'OPENAI_API_KEY',
+                'provider': 'OpenAI'
+            },
+            'o4-mini': {
+                'name': 'o4 Mini',
+                'endpoint': 'https://api.openai.com/v1/chat/completions',
+                'api_key_env': 'OPENAI_API_KEY',
+                'provider': 'OpenAI'
+            },
+            'gpt-5': {
+                'name': 'GPT-5',
+                'endpoint': 'https://api.openai.com/v1/chat/completions',
+                'api_key_env': 'OPENAI_API_KEY',
+                'provider': 'OpenAI'
+            },
+            'gpt-5-mini': {
+                'name': 'GPT-5 Mini',
+                'endpoint': 'https://api.openai.com/v1/chat/completions',
+                'api_key_env': 'OPENAI_API_KEY',
+                'provider': 'OpenAI'
+            },
+            'gpt-5-nano': {
+                'name': 'GPT-5 Nano',
                 'endpoint': 'https://api.openai.com/v1/chat/completions',
                 'api_key_env': 'OPENAI_API_KEY',
                 'provider': 'OpenAI'
