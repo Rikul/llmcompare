@@ -1,12 +1,12 @@
 <!-- Response Template - Include this in your main template -->
 <!-- This template can be used as a component for displaying individual model responses -->
 
-<div class="response-card bg-white rounded-lg shadow-md p-6 mb-4" data-model-id="{{ model_id }}">
+<div class="response-card bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-4 transition-colors duration-200" data-model-id="{{ model_id }}">
     <!-- Response Header -->
     <div class="response-header flex justify-between items-center mb-4">
         <div class="model-info">
-            <h3 class="text-lg font-semibold text-gray-800">{{ model_name }}</h3>
-            <p class="text-sm text-gray-500">{{ provider }}</p>
+            <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-100">{{ model_name }}</h3>
+            <p class="text-sm text-gray-500 dark:text-gray-400">{{ provider }}</p>
         </div>
         
         <div class="response-actions flex items-center space-x-2">
@@ -31,12 +31,12 @@
         {% if status == 'loading' %}
             <!-- Loading State -->
             <div class="flex items-center justify-center py-12">
-                <div class="loading-spinner ease-linear rounded-full border-4 border-t-4 border-gray-200 h-12 w-12 border-t-purple-600 animate-spin"></div>
-                <span class="ml-3 text-gray-600">Generating response...</span>
+                <div class="loading-spinner ease-linear rounded-full border-4 border-t-4 border-gray-200 dark:border-gray-600 h-12 w-12 border-t-purple-600 animate-spin"></div>
+                <span class="ml-3 text-gray-600 dark:text-gray-300">Generating response...</span>
             </div>
         {% elif status == 'error' %}
             <!-- Error State -->
-            <div class="bg-red-50 border-l-4 border-red-400 p-4 rounded">
+            <div class="bg-red-50 dark:bg-red-900/20 border-l-4 border-red-400 p-4 rounded">
                 <div class="flex">
                     <div class="flex-shrink-0">
                         <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
@@ -44,22 +44,22 @@
                         </svg>
                     </div>
                     <div class="ml-3">
-                        <h3 class="text-sm font-medium text-red-800">Error</h3>
-                        <p class="text-sm text-red-700 mt-1">{{ error_message }}</p>
+                        <h3 class="text-sm font-medium text-red-800 dark:text-red-300">Error</h3>
+                        <p class="text-sm text-red-700 dark:text-red-200 mt-1">{{ error_message }}</p>
                         {% if error_type == 'missing_api_key' %}
-                            <p class="text-xs text-red-600 mt-2">Please add the API key to your .env file</p>
+                            <p class="text-xs text-red-600 dark:text-red-300 mt-2">Please add the API key to your .env file</p>
                         {% endif %}
                     </div>
                 </div>
             </div>
         {% else %}
             <!-- Success State -->
-            <div class="response-text-container bg-gray-50 rounded-lg p-4 relative">
-                <pre class="response-text whitespace-pre-wrap text-gray-700 text-sm" id="response-{{ model_id }}">{{ response_text }}</pre>
+            <div class="response-text-container bg-gray-50 dark:bg-gray-900 rounded-lg p-4 relative transition-colors duration-200">
+                <pre class="response-text whitespace-pre-wrap text-gray-700 dark:text-gray-300 text-sm font-mono" id="response-{{ model_id }}">{{ response_text }}</pre>
                 
                 <!-- Copy Button -->
                 <button 
-                    class="copy-button absolute top-2 right-2 bg-white px-3 py-1 rounded-md border border-gray-300 text-xs text-gray-600 hover:bg-gray-50 transition-colors"
+                    class="copy-button absolute top-2 right-2 bg-white dark:bg-gray-700 px-3 py-1 rounded-md border border-gray-300 dark:border-gray-600 text-xs text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
                     onclick="copyResponse('{{ model_id }}')"
                 >
                     <svg class="w-4 h-4 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -70,7 +70,7 @@
             </div>
 
             <!-- Response Metadata -->
-            <div class="response-metadata mt-4 flex justify-between items-center text-xs text-gray-500">
+            <div class="response-metadata mt-4 flex justify-between items-center text-xs text-gray-500 dark:text-gray-400">
                 <div class="timestamp">
                     <svg class="w-4 h-4 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
