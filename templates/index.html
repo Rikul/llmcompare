@@ -5,9 +5,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>LLM Model Comparison Tool</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        mono: ['"Roboto Mono"', 'monospace'],
+                    }
+                }
+            }
+        }
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Roboto+Mono:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/custom.css') }}">
     <style>
         body {
@@ -45,7 +57,7 @@
         }
     </style>
 </head>
-<body class="bg-gray-50">
+<body class="bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
     <!-- Header -->
     <header class="gradient-bg text-white shadow-lg">
         <div class="container mx-auto px-4 py-6">
@@ -54,13 +66,20 @@
                     <h1 class="text-3xl font-bold">LLM Model Comparison Tool</h1>
                     <p class="mt-2 text-purple-100">Compare responses from multiple language models side by side</p>
                 </div>
-                <div class="bg-white bg-opacity-20 rounded-lg px-4 py-2">
-                    <p class="text-sm text-purple-100">API Keys Active</p>
-                    <div class="flex space-x-2 mt-1">
-                        {% for provider, has_key in api_keys_status.items() %}
-                            <span class="w-2 h-2 rounded-full {{ 'bg-green-400' if has_key else 'bg-gray-400' }}" title="{{ provider }}"></span>
-                        {% endfor %}
+                <div class="flex items-center gap-4">
+                    <div class="bg-white bg-opacity-20 rounded-lg px-4 py-2">
+                        <p class="text-sm text-purple-100">API Keys Active</p>
+                        <div class="flex space-x-2 mt-1">
+                            {% for provider, has_key in api_keys_status.items() %}
+                                <span class="w-2 h-2 rounded-full {{ 'bg-green-400' if has_key else 'bg-gray-400' }}" title="{{ provider }}"></span>
+                            {% endfor %}
+                        </div>
                     </div>
+                    <button id="theme-toggle" class="bg-white bg-opacity-20 hover:bg-opacity-30 rounded-lg p-2 transition-colors duration-200 text-white" aria-label="Toggle Dark Mode">
+                        <div id="theme-toggle-icon">
+                            <!-- Icon will be injected by JS -->
+                        </div>
+                    </button>
                 </div>
             </div>
         </div>
@@ -71,8 +90,8 @@
         <div class="flex gap-6">
             <!-- Left Sidebar - Model Selection -->
             <aside class="w-64 flex-shrink-0">
-                <div class="bg-white rounded-lg shadow-md p-4 sticky top-4">
-                    <h2 class="text-lg font-semibold mb-3 text-gray-800">Select Models</h2>
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 sticky top-4 transition-colors duration-200">
+                    <h2 class="text-lg font-semibold mb-3 text-gray-800 dark:text-gray-100">Select Models</h2>
 
                     {% set providers = {} %}
                     {% for model_id, model_info in models.items() %}
@@ -88,8 +107,8 @@
 
                     {% set available_models = models.values() | selectattr('provider', 'in', api_keys_status.keys()) | list %}
                     {% if available_models | length == 0 %}
-                    <div class="mt-4 p-4 bg-yellow-50 border-l-4 border-yellow-400">
-                        <p class="text-sm text-yellow-700">
+                    <div class="mt-4 p-4 bg-yellow-50 dark:bg-yellow-900/30 border-l-4 border-yellow-400">
+                        <p class="text-sm text-yellow-700 dark:text-yellow-400">
                             No models available. Please configure API keys in your .env file.
                         </p>
                     </div>
@@ -101,22 +120,22 @@
             <div class="flex-1">
                 <div class="space-y-6">
                     <!-- System Prompt -->
-                    <div class="bg-white rounded-lg shadow-md p-6">
-                        <h2 class="text-xl font-semibold mb-4 text-gray-800">System Prompt</h2>
+                    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 transition-colors duration-200">
+                        <h2 class="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-100">System Prompt</h2>
                         <textarea
                             id="systemPromptInput"
-                            class="w-full p-4 border-2 border-gray-200 rounded-lg focus:border-purple-400 focus:outline-none"
+                            class="w-full p-4 border-2 border-gray-200 dark:border-gray-700 rounded-lg focus:border-purple-400 dark:focus:border-purple-500 focus:outline-none bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-colors duration-200 font-mono text-sm"
                             rows="4"
                             placeholder="Enter system prompt (optional)... (e.g., 'You are a helpful assistant that explains complex topics in simple terms.')"
                         ></textarea>
                     </div>
 
                     <!-- User Prompt -->
-                    <div class="bg-white rounded-lg shadow-md p-6">
-                        <h2 class="text-xl font-semibold mb-4 text-gray-800">User Prompt</h2>
+                    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 transition-colors duration-200">
+                        <h2 class="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-100">User Prompt</h2>
                         <textarea
                             id="promptInput"
-                            class="w-full p-4 border-2 border-gray-200 rounded-lg focus:border-purple-400 focus:outline-none"
+                            class="w-full p-4 border-2 border-gray-200 dark:border-gray-700 rounded-lg focus:border-purple-400 dark:focus:border-purple-500 focus:outline-none bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-colors duration-200 font-mono text-sm"
                             rows="6"
                             placeholder="Enter your prompt here... (e.g., 'Explain quantum computing in simple terms')"
                         ></textarea>
@@ -133,15 +152,16 @@
 
         <!-- Loading Indicator -->
         <div id="loadingIndicator" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center z-50">
-            <div class="bg-white p-8 rounded-lg shadow-xl">
+            <div class="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-xl border dark:border-gray-700">
                 <div class="flex items-center">
-                    <div class="loading-spinner ease-linear rounded-full border-8 border-t-8 border-gray-200 h-16 w-16"></div>
-                    <p class="ml-4 text-lg font-medium">Getting Responses...</p>
+                    <div class="loading-spinner ease-linear rounded-full border-8 border-t-8 border-gray-200 dark:border-gray-600 h-16 w-16"></div>
+                    <p class="ml-4 text-lg font-medium text-gray-900 dark:text-gray-100">Getting Responses...</p>
                 </div>
             </div>
         </div>
     </main>
 
+    <script src="{{ url_for('static', filename='js/theme.js') }}"></script>
     <script>
         // Fetch and render models on page load
         async function fetchWithRetry(url, retries = 3, delay = 1000) {
@@ -218,12 +238,12 @@
                 providerGroup.className = 'provider-group';
 
                 const title = document.createElement('h3');
-                title.className = 'text-sm font-semibold text-gray-600 uppercase mb-2 pb-1 border-b border-gray-200';
+                title.className = 'text-sm font-semibold text-gray-600 dark:text-gray-400 uppercase mb-2 pb-1 border-b border-gray-200 dark:border-gray-700 mt-4 first:mt-0';
                 title.textContent = provider;
                 providerGroup.appendChild(title);
 
                 const select = document.createElement('select');
-                select.className = 'model-select w-full p-2 rounded border border-gray-200';
+                select.className = 'model-select w-full p-2 rounded border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-colors duration-200';
                 select.dataset.provider = provider;
 
                 const defaultOption = document.createElement('option');

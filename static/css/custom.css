@@ -92,3 +92,25 @@
     color: inherit;
     padding: 0;
 }
+
+/* Dark Mode Overrides */
+.dark body {
+    background-color: #111827; /* gray-900 */
+    color: #f3f4f6; /* gray-100 */
+}
+
+.dark .gradient-bg {
+    background: linear-gradient(135deg, #4c1d95 0%, #1e3a8a 100%); /* darker gradient */
+}
+
+.dark .response-container::-webkit-scrollbar-track {
+    background: #374151; /* gray-700 */
+}
+
+.dark .response-container::-webkit-scrollbar-thumb {
+    background: #6b7280; /* gray-500 */
+}
+
+.dark .response-container::-webkit-scrollbar-thumb:hover {
+    background: #9ca3af; /* gray-400 */
+}
